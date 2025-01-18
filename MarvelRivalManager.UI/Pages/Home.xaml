@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="MarvelRivalManager.UI.Pages.Home"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MarvelRivalManager.UI.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Home"
+>
+    
+    <NavigationView 
+        x:FieldModifier="private" x:Name="navigation"
+        PaneDisplayMode="LeftCompact"
+        IsBackButtonVisible="Collapsed"
+        SelectionFollowsFocus="Enabled"
+        SelectionChanged="NavigationView_SelectionChanged"
+        Header="Marvel Rivals - Mods Manager"
+        AlwaysShowHeader="True"
+    >
+        <NavigationView.MenuItems>
+            <NavigationViewItem 
+                x:FieldModifier="private" x:Name="DefaultPage" 
+                Content="Mods" 
+                Tag="ModManager"
+            >
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Edit"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem 
+                x:FieldModifier="private"
+                Content="Actions" 
+                Tag="Console"
+            >
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Admin"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <Frame 
+            x:FieldModifier="private" x:Name="container"
+        >
+            <Frame.ContentTransitions>
+                <TransitionCollection>
+                    <NavigationThemeTransition  />
+                </TransitionCollection>
+            </Frame.ContentTransitions>
+        </Frame>
+
+    </NavigationView>
+</Window>

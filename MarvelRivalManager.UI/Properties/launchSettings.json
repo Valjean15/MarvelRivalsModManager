@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MarvelRivalManager.UI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MarvelRivalManager.UI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

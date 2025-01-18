@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="MarvelRivalManager.UI.Pages.ModManager"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MarvelRivalManager.UI.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:MarvelRivalManager.UI.ViewModels"
+    xmlns:component="using:MarvelRivalManager.UI.Components"
+    mc:Ignorable="d"
+    
+    Loaded="Page_Loaded"
+>
+    <Page.Resources>
+        <DataTemplate x:Key="ModTemplate" x:DataType="model:ModViewModel">
+            <Grid>
+                <Grid.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Icon="MoveToFolder" Text="Move" Click="CollectionMoveSingle"/>
+                        <MenuFlyoutItem Icon="Edit" Text="Edit" Click="CollectionEditSingle"/>
+                        <MenuFlyoutSeparator/>
+                        <MenuFlyoutItem Icon="Delete" Text="Delete" Click="CollectionDeleteSingle"/>
+                    </MenuFlyout>
+                </Grid.ContextFlyout>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="10"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Ellipse x:Name="ConnectedElement"
+                        Width ="40"
+                        Height="40"
+                        Margin="6"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Fill="{ThemeResource ControlStrongFillColorDefaultBrush}"
+                        Visibility="{x:Bind NoHasLogo, Mode=OneWay}"
+                    />
+                    <Image x:Name="LogoPlaceholder"
+                        Grid.Column="0" Grid.RowSpan="3"
+                        Width ="40"
+                        Height="40"
+                        Margin="6"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Stretch="Uniform"
+                        Source="{x:Bind NullableLogo, Mode=OneWay}"
+                        Visibility="{x:Bind HasLogo, Mode=OneWay}"
+                    />
+                </StackPanel>
+
+                <TextBlock x:Phase="1"
+                    Grid.Column="1" Grid.Row="0"
+                    Margin="12,6,0,0"
+                    Text="{x:Bind Name}"
+                    Style="{ThemeResource BaseTextBlockStyle}"
+                />
+
+                <TextBlock x:Phase="2"
+                    Grid.Column="2" Grid.Row="1"
+                    Margin="12,0,0,6"
+                    Text="{x:Bind Tags}"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                />
+
+                <GridViewItem
+                    Grid.Column="2" Grid.Row="2"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Height="10"
+                >
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Visibility="{x:Bind Values.Metadata.Active}" Glyph="&#xE78C;" FontSize="15"/>
+                        <FontIcon Visibility="{x:Bind Values.Metadata.Unpacked}" Glyph="&#xE8B4;" FontSize="15"/>
+                        <FontIcon Visibility="{x:Bind Invalid}" Glyph="&#xE7BA;" FontSize="15"/>
+                    </StackPanel>
+                </GridViewItem>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <ScrollView>
+        <StackPanel>
+            
+            <StackPanel Orientation="Horizontal">
+                <CommandBar IsOpen="False" DefaultLabelPosition="Right" IsSticky="True" HorizontalAlignment="Left">
+                    <AppBarButton Icon="Add" Label="Add" Click="CollectionAdd"/>
+                    <AppBarSeparator />
+                    <AppBarButton Icon="Delete" Label="Delete" Click="CollectionRemove"/>
+                </CommandBar>
+                <TextBox x:Name="Filter" Margin="8" TextChanged="OnFilterChanged" Width="500"/>
+            </StackPanel>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Vertical" Grid.Column="0" Grid.Row="1" Margin="15">
+                    <TextBlock Text="Enabled" FontSize="24" />
+                    <ListView x:Name="EnabledModsList"
+                        MinHeight="100"
+                        SelectionMode="Multiple"
+                        ItemTemplate="{StaticResource ModTemplate}"
+                        CanDragItems="True"
+                        CanReorderItems="True"
+                        AllowDrop="True"     
+                        DragItemsStarting="CollectionDragStarting"
+                        DragOver="CollectionDragOver"
+                        Drop="CollectionDrop"
+                        Loaded="CollectionLoaded"      
+                    />
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical" Grid.Column="1" Grid.Row="1" Margin="15">
+                    <TextBlock Text="Disabled" FontSize="24" />
+                    <ListView x:Name="DisabledModsList"
+                        MinHeight="100"
+                        SelectionMode="Multiple"
+                        ItemTemplate="{StaticResource ModTemplate}"
+                        CanDragItems="True"
+                        CanReorderItems="True"
+                        AllowDrop="True"     
+                        DragItemsStarting="CollectionDragStarting"
+                        DragOver="CollectionDragOver"
+                        Drop="CollectionDrop"
+                        Loaded="CollectionLoaded" 
+                    />
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollView>
+</Page>
+
+

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MarvelRivalManager.UI.Components.FileInput"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MarvelRivalManager.UI.Components"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+>
+
+    <StackPanel Orientation="Vertical" Spacing="5" VerticalAlignment="Center">
+        <TextBlock 
+            Text="{x:Bind Label, Mode=OneWay}"
+            FontWeight="Bold"
+            FontSize="16"
+        />
+
+        <TextBlock x:Name="Selected"
+            Text="{x:Bind Value, Mode=OneWay}"
+            FontSize="14" 
+            CharacterSpacing="25" 
+            TextWrapping="WrapWholeWords"
+            IsTextSelectionEnabled="True"
+        />
+
+        <Button x:Name="Button"
+            Click="PickFolderButton_Click"
+            Content="Select folder"
+        />
+    </StackPanel>
+</UserControl>
