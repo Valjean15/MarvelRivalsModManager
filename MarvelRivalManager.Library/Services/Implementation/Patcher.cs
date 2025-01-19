@@ -134,18 +134,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
-            string[] backup = kind switch
-            {
-                KindOfMod.All => [
-                    configuration?.Folders?.BackupResources?.Characters ?? string.Empty,
-                    configuration?.Folders?.BackupResources?.Ui ?? string.Empty,
-                    configuration?.Folders?.BackupResources?.Movies ?? string.Empty
-                    ],
-                KindOfMod.Characters => [configuration?.Folders?.BackupResources?.Characters ?? string.Empty],
-                KindOfMod.UI => [configuration?.Folders?.BackupResources?.Ui ?? string.Empty],
-                KindOfMod.Movies => [configuration?.Folders?.BackupResources?.Movies ?? string.Empty],
-                _ => throw new NotImplementedException("Invalid kind of mod."),
-            };
+            var backup = GetValidBackupResources(kind, configuration, informer);
+            if (backup.Length == 0)
+                return false;
 
             informer("Restoring files...".AsLog(RESTORE));
             var time = Stopwatch.StartNew();
@@ -162,6 +153,39 @@ namespace MarvelRivalManager.Library.Services.Implementation
             informer($"Files restored - {HumaneTime(time.ElapsedMilliseconds)}".AsLog(RESTORE));
 
             return true;
+        }
+
+        /// <summary>
+        ///     Get valid backup resources
+        /// </summary>
+        private static string[] GetValidBackupResources(KindOfMod kind, IEnvironment? configuration, Action<string> informer)
+        {
+            (string name, string folder)[] folders = kind switch
+            {
+                KindOfMod.All => [
+                    ("Characters", configuration?.Folders?.BackupResources?.Characters ?? string.Empty),
+                    ("UI", configuration?.Folders?.BackupResources?.Ui ?? string.Empty),
+                    ("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty)
+                    ],
+                KindOfMod.Characters => [("Characters", configuration?.Folders?.BackupResources?.Characters ?? string.Empty)],
+                KindOfMod.UI => [("UI", configuration?.Folders?.BackupResources?.Ui ?? string.Empty)],
+                KindOfMod.Movies => [("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty)],
+                _ => throw new NotImplementedException("Invalid kind of mod."),
+            };
+
+            return folders
+                .Where(tuple =>
+                {
+                    if (string.IsNullOrEmpty(tuple.folder) || !Directory.Exists(tuple.folder))
+                    {
+                        informer($"Backup folder for category {tuple.name} cannot be found".AsLog(RESTORE));
+                        return false;
+                    }
+
+                    return true;
+                })
+                .Select(tuple => tuple.folder)
+                .ToArray();
         }
 
         /// <summary>
@@ -214,9 +238,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     {
                         foreach (var relativePath in mod.Metadata.FilePaths ?? [])
                         {
+                            var backup = LookupOnBackup(configuration.Folders.BackupResources, relativePath);
+                            if (string.IsNullOrEmpty(backup))
+                            {
+                                informer($"File for restore from backup cannot be found => {relativePath}".AsLog(PATCH));
+                                continue;
+                            }
+
                             Path.Combine(configuration.Folders.GameContent, relativePath.TrimStart('\\'))
-                                .OverrideFileWith(
-                                    LookupOnBackup(configuration.Folders.BackupResources, relativePath));
+                                .OverrideFileWith(backup);
                         }
 
                         // Set correct status
