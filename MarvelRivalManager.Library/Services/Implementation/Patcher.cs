@@ -2,6 +2,7 @@
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 using System.Diagnostics;
+using System.Text;
 
 namespace MarvelRivalManager.Library.Services.Implementation
 {
@@ -67,7 +68,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             time.Stop();
-            informer($"Content folder patched successfully - {Math.Round((decimal)(time.ElapsedMilliseconds / 6000L), 2)} min".AsLog(PATCH));
+            informer($"Content folder patched successfully - {HumaneTime(time.ElapsedMilliseconds)}".AsLog(PATCH));
 
             return true;
         }
@@ -158,7 +159,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             await task;
 
             time.Stop();
-            informer($"Files restored - {Math.Round((decimal)(time.ElapsedMilliseconds / 6000L), 2)} min".AsLog(RESTORE));
+            informer($"Files restored - {HumaneTime(time.ElapsedMilliseconds)}".AsLog(RESTORE));
 
             return true;
         }
@@ -271,6 +272,32 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 Resources.Add(kind, string.IsNullOrEmpty(folder) ? [] : folder.GetAllFilesFromDirectory());
                 return Resources[kind];
             }
+        }
+
+        /// <summary>
+        ///     Transforms milliseconds into a human readable time
+        /// </summary>
+        private static string HumaneTime(long milliseconds)
+        {
+            if (milliseconds < 1000)
+                return $"{milliseconds} ms";
+
+            var builder = new List<string>();
+            var seconds = Math.Round((decimal)milliseconds / 1000, MidpointRounding.ToZero);
+            var minutes = Math.Round(seconds / 60, MidpointRounding.ToZero);
+
+            if (minutes > 0)
+            {
+                builder.Add($"{minutes} min");
+                seconds -= minutes * 60;
+            }
+
+            if (seconds > 0)
+            {
+                builder.Add($"{seconds} sec");
+            }
+
+            return string.Join(" ", builder);
         }
 
         #endregion

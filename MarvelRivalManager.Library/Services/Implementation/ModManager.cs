@@ -43,7 +43,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             return [.. ExtractMods(configuration.Folders.ModsEnabled)
                 .Concat(ExtractMods(configuration.Folders.ModsDisabled))
-                .OrderBy(mod => mod.Metadata.Order)];
+                .OrderBy(mod => mod.Metadata.Order)
+                .ThenBy(mod => mod.Metadata.Name)
+                ];
         }
 
         /// <see cref="IModManager.Enable(Mod)"/>

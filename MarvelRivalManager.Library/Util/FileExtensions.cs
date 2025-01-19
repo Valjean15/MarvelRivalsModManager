@@ -54,16 +54,11 @@ namespace MarvelRivalManager.Library.Util
 
         public static bool ChangeExtensionIfExists(this string file, string extension)
         {
-            if (File.Exists(file))
+            if (!File.Exists(file))
                 return false;
 
             File.Move(file, Path.ChangeExtension(file, extension));
             return true;
-        }
-
-        public static void MoveFileIfExists(this string file, string destination)
-        {
-
         }
 
         private static string GetSafeName(string file, int tries = 0)

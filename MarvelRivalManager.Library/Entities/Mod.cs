@@ -41,7 +41,7 @@ namespace MarvelRivalManager.Library.Entities
 
         public override string ToString()
         {
-            return $"[{Metadata.Order}] [{File.Extension}] | {Metadata.Name}";
+            return $"[{File.Extension}] | {Metadata.Name}";
         }
     }
 

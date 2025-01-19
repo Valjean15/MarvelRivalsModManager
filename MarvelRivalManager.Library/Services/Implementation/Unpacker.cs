@@ -83,11 +83,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     continue;
                 }
 
-                informer($"- Updating metadata of mod {mod}...".AsLog(UNPACK));
                 mod.Metadata.Unpacked = true;
                 await mod.Metadata.Update(mod.File);
 
-                informer($"- Merging mod {mod}...".AsLog(MERGE));
                 await mod.File.ExtractionContent.MergeDirectoryAsync(ExtractionFolder);
                 mod.File.Extraction.DeleteDirectoryIfExists();
             }
