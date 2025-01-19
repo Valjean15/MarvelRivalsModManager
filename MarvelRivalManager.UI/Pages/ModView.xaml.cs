@@ -1,3 +1,5 @@
+using MarvelRivalManager.Library.Entities;
+using MarvelRivalManager.Library.Util;
 using MarvelRivalManager.UI.Helper;
 using MarvelRivalManager.UI.ViewModels;
 using Microsoft.UI.Xaml;
@@ -68,13 +70,10 @@ namespace MarvelRivalManager.UI.Pages
             // Move image to the right location
             if (!string.IsNullOrEmpty(Mod.Values.Metadata.Logo))
             {
-                if (!System.IO.Directory.Exists(Mod.Values.File.ImagesLocation))
-                    System.IO.Directory.CreateDirectory(Mod.Values.File.ImagesLocation);
-
-                var filename = System.IO.Path.GetFileName(Mod.Values.Metadata.Logo);
-                var target = System.IO.Path.Combine(Mod.Values.File.ImagesLocation, filename);
-                System.IO.File.Move(Mod.Values.Metadata.Logo, target, true);
-                Mod.Values.Metadata.Logo = target;
+                Mod.Values.File.ImagesLocation.CreateDirectoryIfNotExist();
+                Mod.Values.Metadata.Logo = 
+                    Mod.Values.Metadata.Logo.MakeSafeMove(
+                        System.IO.Path.Combine(Mod.Values.File.ImagesLocation, System.IO.Path.GetFileName(Mod.Values.Metadata.Logo)));
             }
 
             Mod.Values.Update();

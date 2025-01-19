@@ -16,7 +16,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
         public async ValueTask<Mod> Add(string filepath)
         {
             var destination = Path.Combine(Configuration.Load().Folders.ModsEnabled, Path.GetFileName(filepath));
-            File.Copy(filepath, destination, true);
+            filepath.MakeSafeCopy(destination);
+
             return await Enable(new Mod(destination));
         }
 
@@ -33,12 +34,12 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (configuration is null)
                 return [];
 
-            configuration.Folders.ModsEnabled.CreateIfNotExist();
-            configuration.Folders.ModsDisabled.CreateIfNotExist();
-            Path.Combine(configuration.Folders.ModsEnabled, "profiles").CreateIfNotExist();
-            Path.Combine(configuration.Folders.ModsDisabled, "profiles").CreateIfNotExist();
-            Path.Combine(configuration.Folders.ModsEnabled, "images").CreateIfNotExist();
-            Path.Combine(configuration.Folders.ModsDisabled, "images").CreateIfNotExist();
+            configuration.Folders.ModsEnabled.CreateDirectoryIfNotExist();
+            configuration.Folders.ModsDisabled.CreateDirectoryIfNotExist();
+            Path.Combine(configuration.Folders.ModsEnabled, "profiles").CreateDirectoryIfNotExist();
+            Path.Combine(configuration.Folders.ModsDisabled, "profiles").CreateDirectoryIfNotExist();
+            Path.Combine(configuration.Folders.ModsEnabled, "images").CreateDirectoryIfNotExist();
+            Path.Combine(configuration.Folders.ModsDisabled, "images").CreateDirectoryIfNotExist();
 
             return [.. ExtractMods(configuration.Folders.ModsEnabled)
                 .Concat(ExtractMods(configuration.Folders.ModsDisabled))
@@ -53,7 +54,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             mod.Metadata.Valid = true;
             mod.Metadata.Enabled = true;
-            mod.File.Extraction.DeleteIfExists();
+            mod.File.Extraction.DeleteDirectoryIfExists();
             await mod.Metadata.Update(mod.File);
             mod = Move(mod, Configuration.Load().Folders.ModsEnabled);
 
@@ -68,7 +69,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             mod.Metadata.Valid = true;
             mod.Metadata.Enabled = false;
-            mod.File.Extraction.DeleteIfExists();
+            mod.File.Extraction.DeleteDirectoryIfExists();
             await mod.Metadata.Update(mod.File);
             mod = Move(mod, Configuration.Load().Folders.ModsDisabled);
 
@@ -107,11 +108,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
             File.Move(mod.File.Filepath, info.Filepath, true);
             File.Move(mod.File.ProfileFilepath, info.ProfileFilepath, true);
 
-            if (!string.IsNullOrEmpty(mod.Metadata.Logo) && File.Exists(mod.Metadata.Logo))
-            {
-                var logo = Path.GetFileName(mod.Metadata.Logo);
-                File.Move(logo, Path.Combine(info.ImagesLocation, logo), true);
-            }
+            if (!string.IsNullOrEmpty(mod.Metadata.Logo))
+                mod.Metadata.Logo.MakeSafeMove(Path.Combine(info.ImagesLocation, Path.GetFileName(mod.Metadata.Logo)));                
 
             mod.File.Filepath = destination;
             return mod;

@@ -1,6 +1,6 @@
 ﻿namespace MarvelRivalManager.Library.Util
 {
-    internal static class DirectoryExtensions
+    public static class DirectoryExtensions
     {
         public async static ValueTask MergeDirectoryAsync(this string sourceDir, string destinationDir, bool dooverride = true)
         {
@@ -69,7 +69,7 @@
                 }
             }
         }
-        public static List<string> GetAllFilePaths(this string path, List<string>? files = null)
+        public static List<string> GetAllFilesFromDirectory(this string path, List<string>? files = null)
         {
             files ??= [];
 
@@ -80,12 +80,12 @@
             string[] subDirs = Directory.GetDirectories(path);
             foreach (var dir in subDirs)
             {
-                GetAllFilePaths(dir, files);
+                GetAllFilesFromDirectory(dir, files);
             }
 
             return files;
         }
-        public static bool ContainSubFolder(this string path, string lookup)
+        public static bool DirectoryContainsSubfolder(this string path, string lookup)
         {
             if (!Directory.Exists(path))
                 return false;
@@ -93,21 +93,21 @@
             string[] subDirs = Directory.GetDirectories(path, lookup, SearchOption.AllDirectories) ?? [];
             return subDirs.Length > 0;
         }
-        public static void CreateIfNotExist(this string path)
+        public static void CreateDirectoryIfNotExist(this string path)
         {
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
         }
-        public static void DeleteIfExists(this string path)
+        public static void DeleteDirectoryIfExists(this string path)
         {
             if (Directory.Exists(path))
             {
                 Directory.Delete(path, true);
             }
         }
-        public static void DeleteContent(this string path)
+        public static void DeleteDirectoryContent(this string path)
         {
             if (!Directory.Exists(path))
                 return;
@@ -121,7 +121,7 @@
             string[] subDirs = Directory.GetDirectories(path);
             foreach (var dir in subDirs)
             {
-                dir.DeleteIfExists();
+                dir.DeleteDirectoryIfExists();
             }
         }
     }

@@ -58,7 +58,8 @@ namespace MarvelRivalManager.UI.ViewModels
         {
             get
             {
-                var value = string.Join(", ", Values.Metadata.Tags.Concat(Values.Metadata.SystemTags));
+                var value = string.Join(", ", Values.Metadata.Tags.Concat(Values.Metadata.SystemTags)
+                    .Where(tag => !string.IsNullOrWhiteSpace(tag)));
                 return string.IsNullOrEmpty(value) ? "[No tags]" : value;
             }
         }

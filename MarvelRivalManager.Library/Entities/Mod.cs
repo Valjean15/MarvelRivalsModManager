@@ -1,16 +1,7 @@
 ﻿using MarvelRivalManager.Library.Util;
-using System.Text.Json;
 
 namespace MarvelRivalManager.Library.Entities
 {
-    public static class ModOptions
-    {
-        /// <summary>
-        ///     Json serialized options for the settings
-        /// </summary>
-        public static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
-    }
-
     public class ModTags
     {
         public const string PakFile = "pak";
@@ -36,19 +27,16 @@ namespace MarvelRivalManager.Library.Entities
 
         public void Update()
         {
-            System.IO.File.WriteAllText(File.ProfileFilepath, JsonSerializer.Serialize(Metadata, ModOptions.JsonOptions));
+            File.ProfileFilepath.WriteFileContent(Metadata);
         }
 
         public void Delete()
         {
-            if (System.IO.File.Exists(File.Filepath))
-                System.IO.File.Delete(File.Filepath);
+            File.Filepath.DeleteFileIfExist();
+            File.ProfileFilepath.DeleteFileIfExist();
 
-            if (System.IO.File.Exists(File.ProfileFilepath))
-                System.IO.File.Delete(File.ProfileFilepath);
-
-            if (!string.IsNullOrEmpty(Metadata.Logo) && System.IO.File.Exists(Metadata.Logo))
-                System.IO.File.Delete(Metadata.Logo);
+            if (!string.IsNullOrEmpty(Metadata.Logo))
+                Metadata.Logo.DeleteFileIfExist();
         }
 
         public override string ToString()
@@ -92,22 +80,19 @@ namespace MarvelRivalManager.Library.Entities
 
         public Metadata(FileInformation file)
         {
-            if (File.Exists(file.ProfileFilepath))
+            var stored = file.ProfileFilepath.DeserializeFileContent<Metadata>();
+            if (stored is not null)
             {
-                var stored = JsonSerializer.Deserialize<Metadata>(File.ReadAllText(file.ProfileFilepath));
-                if (stored is not null)
-                {
-                    Order = stored.Order;
-                    Logo = stored.Logo;
-                    SystemTags = stored.SystemTags;
-                    Tags = stored.Tags;
-                    FilePaths = stored.FilePaths;
-                    Name = stored.Name;
-                    Enabled = stored.Enabled;
-                    Unpacked = stored.Unpacked;
-                    Active = stored.Active;
-                    Valid = stored.Valid;
-                }
+                Order = stored.Order;
+                Logo = stored.Logo;
+                SystemTags = stored.SystemTags;
+                Tags = stored.Tags;
+                FilePaths = stored.FilePaths;
+                Name = stored.Name;
+                Enabled = stored.Enabled;
+                Unpacked = stored.Unpacked;
+                Active = stored.Active;
+                Valid = stored.Valid;
             }
             else
             {
@@ -133,13 +118,13 @@ namespace MarvelRivalManager.Library.Entities
             var tagTask = Task.Run(() =>
             {
                 var tags = new List<string>();
-                if (file.ExtractionContent.ContainSubFolder("UI"))
+                if (file.ExtractionContent.DirectoryContainsSubfolder("UI"))
                     tags.Add(ModTags.UI);
 
-                if (file.ExtractionContent.ContainSubFolder("Movies"))
+                if (file.ExtractionContent.DirectoryContainsSubfolder("Movies"))
                     tags.Add(ModTags.Movies);
 
-                if (file.ExtractionContent.ContainSubFolder("Characters"))
+                if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
                     tags.Add(ModTags.Character);
 
                 tags.AddRange(SystemTags);
@@ -149,7 +134,7 @@ namespace MarvelRivalManager.Library.Entities
             var filePathTask = Task.Run(() =>
             {
                 FilePaths = [.. file.ExtractionContent
-                    .GetAllFilePaths()
+                    .GetAllFilesFromDirectory()
                     .Select(path => path.Replace(file.ExtractionContent, string.Empty)
                 )];
             });
@@ -160,7 +145,7 @@ namespace MarvelRivalManager.Library.Entities
 
         private void Store(FileInformation file)
         {
-            File.WriteAllText(file.ProfileFilepath, JsonSerializer.Serialize(this, ModOptions.JsonOptions));
+            file.ProfileFilepath.WriteFileContent(this);
         }
     }
 }

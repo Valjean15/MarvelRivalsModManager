@@ -50,11 +50,11 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (!Directory.Exists(ExtractionFolder))
             {
                 informer("Extraction folder do not exist, creating folder...".AsLog(UNPACK));
-                ExtractionFolder.CreateIfNotExist();
+                ExtractionFolder.CreateDirectoryIfNotExist();
             }
             else
             {
-                ExtractionFolder.DeleteContent();
+                ExtractionFolder.DeleteDirectoryContent();
             }
 
             var invalid = mods.Where(x => !x.Metadata.Valid).OrderBy(mod => mod.Metadata.Order).ToArray();
@@ -89,7 +89,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
                 informer($"- Merging mod {mod}...".AsLog(MERGE));
                 await mod.File.ExtractionContent.MergeDirectoryAsync(ExtractionFolder);
-                mod.File.Extraction.DeleteIfExists();
+                mod.File.Extraction.DeleteDirectoryIfExists();
             }
         }
 
@@ -127,7 +127,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> UnpackInternal(Mod mod)
         {
-            mod.File.Extraction.DeleteIfExists();
+            mod.File.Extraction.DeleteDirectoryIfExists();
             return mod.File.Extension switch
             {
                 ".pak" => await ExtractPakFile(mod.File),
@@ -152,7 +152,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 case ".7z":
                     using (var archive = SevenZipArchive.Open(file.Filepath))
                     {
-                        file.Extraction.CreateIfNotExist();
+                        file.Extraction.CreateDirectoryIfNotExist();
                         var reader = archive.ExtractAllEntries();
                         reader.WriteAllToDirectory(file.Extraction, new SharpCompress.Common.ExtractionOptions
                         {
@@ -165,7 +165,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 case ".rar":
                     using (var archive = RarArchive.Open(file.Filepath))
                     {
-                        file.Extraction.CreateIfNotExist();
+                        file.Extraction.CreateDirectoryIfNotExist();
                         var reader = archive.ExtractAllEntries();
                         reader.WriteAllToDirectory(file.Extraction, new SharpCompress.Common.ExtractionOptions
                         {

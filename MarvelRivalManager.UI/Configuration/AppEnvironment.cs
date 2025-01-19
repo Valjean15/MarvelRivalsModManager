@@ -1,7 +1,8 @@
 ﻿using IEnv = MarvelRivalManager.Library.Services.Interface.IEnvironment;
 using Env = MarvelRivalManager.Library.Services.Implementation.Environment;
 
-using System.Text.Json;
+using MarvelRivalManager.Library.Util;
+
 using System.IO;
 using System;
 
@@ -25,11 +26,6 @@ namespace MarvelRivalManager.UI.Configuration
         /// </summary>
         private readonly string UserSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "usersettings.json");
         
-        /// <summary>
-        ///     Json serialized options for the settings
-        /// </summary>
-        private readonly JsonSerializerOptions Options = new() { WriteIndented = true };
-
         #endregion
 
         /// <summary>
@@ -37,11 +33,7 @@ namespace MarvelRivalManager.UI.Configuration
         /// </summary>
         public override IAppEnvironment Load()
         {
-            var values = File.Exists(UserSettingsPath)
-                ? JsonSerializer.Deserialize<AppEnvironment>(File.ReadAllText(UserSettingsPath)) ?? this
-                : this;
-
-            // Update values
+            var values = UserSettingsPath.DeserializeFileContent<AppEnvironment>() ?? this;
             Folders = values.Folders ?? new();
             return values;
         }
@@ -51,7 +43,7 @@ namespace MarvelRivalManager.UI.Configuration
         /// </summary>
         public void Update(IEnv environment)
         {
-            File.WriteAllText(UserSettingsPath, JsonSerializer.Serialize(environment, Options));
+            UserSettingsPath.WriteFileContent(environment);
         }
     }
 }

@@ -110,15 +110,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
             informer($"{(enable ? "Enabling" : "Disabling")} {kind} mods".AsLog(TOGGLE));
             foreach (var file in files)
             {
-                if (File.Exists(file))
-                {
-                    File.Move(file, Path.ChangeExtension(file, destination));
-                    informer($"File {file} found".AsLog(TOGGLE));
-                }
-                else
-                {
-                    informer($"File {file} not found. Skipping toggle.".AsLog(TOGGLE));
-                }
+                informer(file.ChangeExtensionIfExists(destination) 
+                    ? $"File {file} found".AsLog(TOGGLE) 
+                    : $"File {file} not found. Skipping toggle.".AsLog(TOGGLE)
+                );
             }
 
             return true;
@@ -197,8 +192,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                         foreach (var relativePath in mod.Metadata.FilePaths ?? [])
                         {
                             var file = Path.Combine(content, relativePath.TrimStart('\\'));
-                            if (File.Exists(file))
-                                File.Delete(file);
+                            file.DeleteFileIfExist();
                         }
 
                         // Set correct status
@@ -219,12 +213,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     {
                         foreach (var relativePath in mod.Metadata.FilePaths ?? [])
                         {
-                            var backup = LookupOnBackup(configuration.Folders.BackupResources, relativePath);
-                            if (!string.IsNullOrWhiteSpace(backup))
-                            {
-                                var destination = Path.Combine(configuration.Folders.GameContent, relativePath.TrimStart('\\'));
-                                File.Copy(backup, destination, true);
-                            }
+                            Path.Combine(configuration.Folders.GameContent, relativePath.TrimStart('\\'))
+                                .OverrideFileWith(
+                                    LookupOnBackup(configuration.Folders.BackupResources, relativePath));
                         }
 
                         // Set correct status
@@ -277,7 +268,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     _ => string.Empty,
                 };
 
-                Resources.Add(kind, string.IsNullOrEmpty(folder) ? [] : folder.GetAllFilePaths());
+                Resources.Add(kind, string.IsNullOrEmpty(folder) ? [] : folder.GetAllFilesFromDirectory());
                 return Resources[kind];
             }
         }
