@@ -15,10 +15,25 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IModManager.Add(string)"/>
         public async ValueTask<Mod> Add(string filepath)
         {
-            var destination = Path.Combine(Configuration.Load().Folders.ModsEnabled, Path.GetFileName(filepath));
+            var configuration = Configuration.Load();
+            var destination = Path.Combine(configuration.Folders.ModsEnabled, Path.GetFileName(filepath));
+
             filepath.MakeSafeCopy(destination);
 
-            return await Enable(new Mod(destination));
+            new FileInformation(destination).ProfileLocation.CreateDirectoryIfNotExist();
+            var mod = new Mod(destination);
+
+            mod.Metadata.Valid = await Unpacker.StoreMetadata(mod);
+            mod.Metadata.Enabled = mod.Metadata.Valid;
+
+            await mod.Metadata.Update(mod.File);
+            mod.File.Extraction.DeleteDirectoryIfExists();
+
+            mod = Move(mod, mod.Metadata.Enabled 
+                ? configuration.Folders.ModsEnabled
+                : configuration.Folders.ModsDisabled);
+
+            return mod;
         }
 
         /// <see cref="IModManager.Delete(Mod)"/>
@@ -56,8 +71,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             mod.Metadata.Valid = true;
             mod.Metadata.Enabled = true;
-            mod.File.Extraction.DeleteDirectoryIfExists();
             await mod.Metadata.Update(mod.File);
+            mod.File.Extraction.DeleteDirectoryIfExists();
             mod = Move(mod, Configuration.Load().Folders.ModsEnabled);
 
             return mod;
@@ -107,11 +122,18 @@ namespace MarvelRivalManager.Library.Services.Implementation
             var destination = Path.Combine(folder, $"{mod.File.Filename}{mod.File.Extension}");
             var info = new FileInformation(destination);
 
-            File.Move(mod.File.Filepath, info.Filepath, true);
-            File.Move(mod.File.ProfileFilepath, info.ProfileFilepath, true);
+            if (!mod.File.Filepath.Equals(info.Filepath))
+                File.Move(mod.File.Filepath, info.Filepath, true);
+
+            if (!mod.File.ProfileFilepath.Equals(info.ProfileFilepath))
+                File.Move(mod.File.ProfileFilepath, info.ProfileFilepath, true);
 
             if (!string.IsNullOrEmpty(mod.Metadata.Logo))
-                mod.Metadata.Logo.MakeSafeMove(Path.Combine(info.ImagesLocation, Path.GetFileName(mod.Metadata.Logo)));                
+            {
+                var newLogoLocation = Path.GetFileName(mod.Metadata.Logo);
+                if (!info.ImagesLocation.Equals(newLogoLocation))
+                    mod.Metadata.Logo.MakeSafeMove(Path.Combine(info.ImagesLocation, newLogoLocation));
+            }               
 
             mod.File.Filepath = destination;
             return mod;

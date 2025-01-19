@@ -32,12 +32,12 @@ namespace MarvelRivalManager.UI.Configuration
         /// <summary>
         ///     Folder were the user modified settings are saved
         /// </summary>
-        private readonly string UserSettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), UserSettingsFolderName);
+        private readonly string UserSettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), UserSettingsFolderName);
 
         /// <summary>
         ///     File were the user modified settings are saved
         /// </summary>
-        private readonly string UserSettingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), UserSettingsFileName);
+        private readonly string UserSettingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), UserSettingsFileName);
 
         #endregion
 

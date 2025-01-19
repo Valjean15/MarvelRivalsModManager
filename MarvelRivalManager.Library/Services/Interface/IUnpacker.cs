@@ -20,6 +20,6 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
         ///     Get the extraction folder
         /// </summary>
-        string GetExtractionFolder();
+        string GetExtractionFolder(Action<string>? informer = null);
     }
 }

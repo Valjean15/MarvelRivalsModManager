@@ -27,6 +27,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         #region Properties
         public string ExecutableFile { get; set; } = string.Empty;
         public string ExtractionFolder { get; set; } = string.Empty;
+        public bool CanUsePackUnpacker => !string.IsNullOrEmpty(ExecutableFile) && File.Exists(ExecutableFile);
         #endregion
 
         /// <see cref="IUnpacker.StoreMetadata(Mod)"/>
@@ -40,12 +41,6 @@ namespace MarvelRivalManager.Library.Services.Implementation
         {
             if (!ValidateConfiguration(informer))
                 return;
-
-            if (!File.Exists(ExecutableFile))
-            {
-                informer("The unpacker executable do not exist.".AsLog(UNPACK));
-                return;
-            }
 
             if (!Directory.Exists(ExtractionFolder))
             {
@@ -73,6 +68,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             informer("Unpacking mods...".AsLog(UNPACK));
+            var time = Stopwatch.StartNew();
 
             foreach (var mod in valid)
             {
@@ -89,12 +85,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 await mod.File.ExtractionContent.MergeDirectoryAsync(ExtractionFolder);
                 mod.File.Extraction.DeleteDirectoryIfExists();
             }
+
+            time.Stop();
+            informer($"Unpacking mods complete - {time.GetHumaneElapsedTime()}".AsLog(UNPACK));
         }
 
-        /// <see cref="IUnpacker.GetExtractionFolder"/>
-        public string GetExtractionFolder()
+        /// <see cref="IUnpacker.GetExtractionFolder(Action{string}?)"/>
+        public string GetExtractionFolder(Action<string>? informer = null)
         {
-            return !ValidateConfiguration() || !Directory.Exists(ExtractionFolder) ? string.Empty : ExtractionFolder;
+            return !ValidateConfiguration(informer) || !Directory.Exists(ExtractionFolder) ? string.Empty : ExtractionFolder;
         }
 
         #region Private Methods
@@ -116,6 +115,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
             // Properties
             ExecutableFile = $"{configuration.Folders.UnpackerExecutable}/repak.exe";
             ExtractionFolder = $"{configuration.Folders.UnpackerExecutable}/extraction";
+
+            if (!CanUsePackUnpacker && informer is not null)
+                informer("The unpacker executable do not exist on the unpacker folder.".AsLog(UNPACK));
 
             return true;
         }
@@ -201,6 +203,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> ExtractPakFile(FileInformation file)
         {
+            if (!CanUsePackUnpacker)
+                return false;
+
             try
             {
                 using var process = Process.Start(new ProcessStartInfo

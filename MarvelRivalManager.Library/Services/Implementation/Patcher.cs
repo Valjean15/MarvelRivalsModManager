@@ -2,7 +2,6 @@
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 using System.Diagnostics;
-using System.Text;
 
 namespace MarvelRivalManager.Library.Services.Implementation
 {
@@ -47,10 +46,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
-            var content = Unpacker.GetExtractionFolder();
+            var content = Unpacker.GetExtractionFolder(informer);
             if (string.IsNullOrEmpty(content) || !Directory.Exists(content))
             {
-                informer("Content folder is not set. Skipping patch.".AsLog(PATCH));
+                informer("The unpacked content folder do not exist. Skipping patch.".AsLog(PATCH));
                 return false;
             }
 
@@ -68,7 +67,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             time.Stop();
-            informer($"Content folder patched successfully - {HumaneTime(time.ElapsedMilliseconds)}".AsLog(PATCH));
+            informer($"Content folder patched successfully - {time.GetHumaneElapsedTime()}".AsLog(PATCH));
 
             return true;
         }
@@ -150,7 +149,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             await task;
 
             time.Stop();
-            informer($"Files restored - {HumaneTime(time.ElapsedMilliseconds)}".AsLog(RESTORE));
+            informer($"Files restored - {time.GetHumaneElapsedTime()}".AsLog(RESTORE));
 
             return true;
         }
@@ -302,32 +301,6 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 Resources.Add(kind, string.IsNullOrEmpty(folder) ? [] : folder.GetAllFilesFromDirectory());
                 return Resources[kind];
             }
-        }
-
-        /// <summary>
-        ///     Transforms milliseconds into a human readable time
-        /// </summary>
-        private static string HumaneTime(long milliseconds)
-        {
-            if (milliseconds < 1000)
-                return $"{milliseconds} ms";
-
-            var builder = new List<string>();
-            var seconds = Math.Round((decimal)milliseconds / 1000, MidpointRounding.ToZero);
-            var minutes = Math.Round(seconds / 60, MidpointRounding.ToZero);
-
-            if (minutes > 0)
-            {
-                builder.Add($"{minutes} min");
-                seconds -= minutes * 60;
-            }
-
-            if (seconds > 0)
-            {
-                builder.Add($"{seconds} sec");
-            }
-
-            return string.Join(" ", builder);
         }
 
         #endregion
