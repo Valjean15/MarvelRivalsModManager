@@ -241,11 +241,14 @@ namespace MarvelRivalManager.Library.Services.Implementation
                             if (string.IsNullOrEmpty(backup))
                             {
                                 informer($"File for restore from backup cannot be found => {relativePath}".AsLog(LogConstants.PATCH));
-                                continue;
+                                Path.Combine(Configuration.Folders.GameContent, relativePath.TrimStart('\\'))
+                                    .DeleteFileIfExist();
                             }
-
-                            Path.Combine(Configuration.Folders.GameContent, relativePath.TrimStart('\\'))
-                                .OverrideFileWith(backup);
+                            else
+                            {
+                                Path.Combine(Configuration.Folders.GameContent, relativePath.TrimStart('\\'))
+                                    .OverrideFileWith(backup);
+                            }
                         }
 
                         // Set correct status

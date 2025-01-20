@@ -73,7 +73,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 }
 
                 mod.Metadata.Unpacked = true;
-                await mod.Metadata.SetSystemInformation(mod.File);
+                await mod.SetSystemInformation();
+                mod.Update();
 
                 await mod.File.ExtractionContent.MergeDirectoryAsync(ExtractionFolder);
                 mod.File.Extraction.DeleteDirectoryIfExists();
