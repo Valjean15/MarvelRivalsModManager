@@ -112,9 +112,16 @@ namespace MarvelRivalManager.UI.Pages
         private void Print(string message)
         {
             Logs.AppendLine(message);
-            Ouput.IsReadOnly = false;
-            Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), Logs.ToString());
-            Ouput.IsReadOnly = true;
+            try
+            {
+                Ouput.IsReadOnly = false;
+                Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), Logs.ToString());
+                Ouput.IsReadOnly = true;
+            }
+            catch
+            {
+
+            }
         }
 
         private void IsLoading(bool loading)
