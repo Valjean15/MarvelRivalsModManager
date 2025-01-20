@@ -53,6 +53,10 @@
                     Label="Movies" 
                     OnChange="Update"
                     Value="{x:Bind m_environment.Folders.BackupResources.Movies, Mode=TwoWay}" />
+                <component:FileInput 
+                    Label="Audio" 
+                    OnChange="Update"
+                    Value="{x:Bind m_environment.Folders.BackupResources.Audio, Mode=TwoWay}" />
             </StackPanel>
         </StackPanel>
     </ScrollView>
