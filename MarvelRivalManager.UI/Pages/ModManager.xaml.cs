@@ -1,4 +1,5 @@
 using MarvelRivalManager.Library.Services.Interface;
+using MarvelRivalManager.Library.Util;
 using MarvelRivalManager.UI.Helper;
 using MarvelRivalManager.UI.ViewModels;
 
@@ -8,6 +9,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +27,7 @@ namespace MarvelRivalManager.UI.Pages
     {
         #region Dependencies
 
+        private readonly IEnvironment m_environment = Services.Get<IEnvironment>();
         private readonly IModManager m_manager = Services.Get<IModManager>();
 
         #endregion
@@ -48,10 +51,16 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private void Page_Loaded(object _, RoutedEventArgs __)
         {
-            var mods = m_manager.All().Select((mod, index) => new ModViewModel(index + 1, mod)).ToArray();
+            m_environment.Load();
 
-            Enabled = new ModCollection(mods.Where(x => x.Values.Metadata.Enabled));
-            Disabled = new ModCollection(mods.Where(x => !x.Values.Metadata.Enabled));
+            var mods = m_manager.AllAsFilepaths()
+                .Select((filepath, index) => new ModViewModel(index + 1, filepath))
+                .OrderBy(mod => mod.Metadata.Order)
+                .ThenBy(mod => mod.Metadata.Name)
+                .ToArray();
+
+            Enabled = new ModCollection(mods.Where(x => x.Metadata.Enabled));
+            Disabled = new ModCollection(mods.Where(x => !x.Metadata.Enabled));
             Refresh();
         }
 
@@ -74,7 +83,7 @@ namespace MarvelRivalManager.UI.Pages
             if (Selected is null)
                 return;
 
-            var collection = Selected.Values.Metadata.Enabled ? EnabledModsList : DisabledModsList;
+            var collection = Selected.Metadata.Enabled ? EnabledModsList : DisabledModsList;
             collection.ScrollIntoView(Selected, ScrollIntoViewAlignment.Default);
             collection.UpdateLayout();
 
@@ -95,7 +104,7 @@ namespace MarvelRivalManager.UI.Pages
         /// <summary>
         ///     Event to add a new mod to the collection
         /// </summary>
-        private async void CollectionAdd(object sender, RoutedEventArgs e)
+        private async void CollectionAdd(object sender, RoutedEventArgs _)
         {
             if (sender is not Button button)
                 return;
@@ -116,15 +125,11 @@ namespace MarvelRivalManager.UI.Pages
             foreach (var pattern in m_manager.SupportedExtentensions())
                 picker.FileTypeFilter.Add(pattern);
 
-            var files = await picker.PickMultipleFilesAsync();
-            if (files.Count > 0)
+            foreach (var file in (await picker.PickMultipleFilesAsync()) ?? [])
             {
-                foreach (var file in files)
-                {
-                    var mod = await m_manager.Add(file.Path);
-                    var collection = mod.Metadata.Enabled ? Enabled : Disabled;
-                    collection.Add(new ModViewModel(collection.Count + 1, mod));
-                }
+                var mod = await m_manager.Add(file.Path.MakeSafeCopy(Path.Combine(m_environment.Folders.ModsEnabled, Path.GetFileName(file.Path))));
+                var collection = mod.Metadata.Enabled ? Enabled : Disabled;
+                collection.Add(new ModViewModel(collection.Count + 1, mod.File.Filepath));
             }
 
             Refresh();
@@ -136,13 +141,13 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void CollectionMoveSingle(object sender, RoutedEventArgs e)
+        private async void CollectionMoveSingle(object sender, RoutedEventArgs _)
         {
             if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
                 return;
 
-            var source = mod.Values.Metadata.Enabled ? Enabled : Disabled;
-            var target = mod.Values.Metadata.Enabled ? Disabled : Enabled;
+            var source = mod.Metadata.Enabled ? Enabled : Disabled;
+            var target = mod.Metadata.Enabled ? Disabled : Enabled;
 
             var (edited, success) = await Move(mod, target.Count + 1);
             if (success)
@@ -157,7 +162,7 @@ namespace MarvelRivalManager.UI.Pages
         /// <summary>
         ///     Event to add a new mod to the collection
         /// </summary>
-        private void CollectionRemove(object sender, RoutedEventArgs e)
+        private void CollectionRemove(object sender, RoutedEventArgs _)
         {
             if (sender is not Button button)
                 return;
@@ -172,8 +177,8 @@ namespace MarvelRivalManager.UI.Pages
                 .Where(item => item is not null)
                 .ToArray())
             {
-                m_manager.Delete(mod!.Values);
-                Enabled.Remove(mod);
+                m_manager.Delete(mod!);
+                Enabled.Remove(mod!);
             }
 
             foreach (var mod in DisabledModsList.SelectedItems
@@ -186,8 +191,8 @@ namespace MarvelRivalManager.UI.Pages
                 .Where(item => item is not null)
                 .ToArray())
             {
-                m_manager.Delete(mod!.Values);
-                Disabled.Remove(mod);
+                m_manager.Delete(mod!);
+                Disabled.Remove(mod!);
             }
 
             Refresh();
@@ -199,13 +204,13 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CollectionDeleteSingle(object sender, RoutedEventArgs e)
+        private void CollectionDeleteSingle(object sender, RoutedEventArgs _)
         {
             if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
                 return;
 
-            var collection = mod.Values.Metadata.Enabled ? Enabled : Disabled;
-            m_manager.Delete(mod.Values);
+            var collection = mod.Metadata.Enabled ? Enabled : Disabled;
+            m_manager.Delete(mod);
             collection.Remove(mod);
             Refresh();
         }
@@ -213,14 +218,14 @@ namespace MarvelRivalManager.UI.Pages
         /// <summary>
         ///     Event when a mod element is clicked
         /// </summary>
-        private void CollectionEditSingle(object sender, RoutedEventArgs e)
+        private void CollectionEditSingle(object sender, RoutedEventArgs _)
         {
             if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
                 return;
 
             Selected = mod;
 
-            (mod.Values.Metadata.Enabled ? EnabledModsList : DisabledModsList)
+            (mod.Metadata.Enabled ? EnabledModsList : DisabledModsList)
                 .PrepareConnectedAnimation("ForwardConnectedAnimation", Selected, "ConnectedElement");
 
             Frame.Navigate(typeof(ModView), Selected, new SuppressNavigationTransitionInfo());
@@ -337,9 +342,10 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private async ValueTask<(ModViewModel edited, bool success)> Move(ModViewModel mod, int index)
         {
-            var status = mod.Values.Metadata.Enabled;
-            var edited = await(mod.Values.Metadata.Enabled ? m_manager.Disable(mod.Values) : m_manager.Enable(mod.Values));
-            return (new ModViewModel(index, edited), status != edited.Metadata.Enabled);
+            var current = mod.Metadata.Enabled;
+            mod.Metadata.Enabled = !mod.Metadata.Enabled;
+            var edited = await m_manager.Update(mod);
+            return (new ModViewModel(index, edited.File.Filepath), current != edited.Metadata.Enabled);
         }
 
         /// <summary>
@@ -351,11 +357,11 @@ namespace MarvelRivalManager.UI.Pages
             {
                 EnabledModsList.ItemsSource = new ModCollection(
                     Enabled.Where(x => x.Tags.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase) ||
-                    x.Values.Metadata.Name.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase)
+                    x.Metadata.Name.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase)
                 ));
                 DisabledModsList.ItemsSource = new ModCollection(
                     Disabled.Where(x => x.Tags.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase) ||
-                    x.Values.Metadata.Name.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase)
+                    x.Metadata.Name.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase)
                 ));
             }
             else

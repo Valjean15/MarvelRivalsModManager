@@ -8,12 +8,6 @@ namespace MarvelRivalManager.Library.Services.Implementation
     /// <see cref="IPatcher"/>
     internal class Patcher(IEnvironment configuration, IUnpacker unpacker, IModManager manager) : IPatcher
     {
-        #region Constants
-        private const string RESTORE = "RSTRE";
-        private const string TOGGLE = "TGGLE";
-        private const string PATCH = "PATCH";
-        #endregion
-
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
         private readonly IUnpacker Unpacker = unpacker;
@@ -39,27 +33,26 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IPatcher.Patch(string, Action{string})"/>
         public async ValueTask<bool> Patch(Action<string> informer)
         {
-            var configuration = Configuration.Load();
-            if (configuration is null || string.IsNullOrWhiteSpace(configuration?.Folders?.GameContent))
+            if (string.IsNullOrWhiteSpace(Configuration.Folders?.GameContent))
             {
-                informer("Game content folder is not set. Skipping restore.".AsLog(PATCH));
+                informer("Game content folder is not set. Skipping restore.".AsLog(LogConstants.PATCH));
                 return false;
             }
 
             var content = Unpacker.GetExtractionFolder(informer);
             if (string.IsNullOrEmpty(content) || !Directory.Exists(content))
             {
-                informer("The unpacked content folder do not exist. Skipping patch.".AsLog(PATCH));
+                informer("The unpacked content folder do not exist. Skipping patch.".AsLog(LogConstants.PATCH));
                 return false;
             }
 
             var all = Manager.All();
             await RemoveUnusedContent(all.Where(mod => !mod.Metadata.Enabled).ToArray(), informer);
 
-            informer("Starting patching folder".AsLog(PATCH));
+            informer("Starting patching folder".AsLog(LogConstants.PATCH));
             var time = Stopwatch.StartNew();
 
-            await content.MergeDirectoryAsync(configuration!.Folders.GameContent);
+            await content.MergeDirectoryAsync(Configuration.Folders.GameContent);
             foreach (var mod in all.Where(mod => mod.Metadata.Unpacked && mod.Metadata.Enabled))
             {
                 mod.Metadata.Active = true;
@@ -67,7 +60,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             time.Stop();
-            informer($"Content folder patched successfully - {time.GetHumaneElapsedTime()}".AsLog(PATCH));
+            informer($"Content folder patched successfully - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.PATCH));
 
             return true;
         }
@@ -75,16 +68,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IPatcher.Toggle(KindOfMod, bool, Action{string})"/>
         public bool Toggle(KindOfMod kind, bool enable, Action<string> informer)
         {
-            var configuration = Configuration.Load();
-            if (configuration is null || string.IsNullOrWhiteSpace(configuration?.Folders?.GameContent))
+            if (string.IsNullOrWhiteSpace(Configuration.Folders?.GameContent))
             {
-                informer("Game content folder is not set. Skipping restore.".AsLog(TOGGLE));
+                informer("Game content folder is not set. Skipping restore.".AsLog(LogConstants.TOGGLE));
                 return false;
             }
 
             var source = enable ? ".pak" : ".backup";
             var destination = enable ? ".backup" : ".pak";
-            var folder = Path.Combine(configuration.Folders.GameContent, "Paks");
+            var folder = Path.Combine(Configuration.Folders.GameContent, "Paks");
 
             string[] files = kind switch
             {
@@ -92,7 +84,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     Path.Combine(folder, $"pakchunkCharacter-Windows{source}"),
                     Path.Combine(folder, $"pakchunkHQ-Windows{source}"),
                     Path.Combine(folder, $"pakchunkLQ-Windows{source}"),
-                    Path.Combine(folder, $"pakchunkMovies-Windows{source}")
+                    Path.Combine(folder, $"pakchunkMovies-Windows{source}"),
+                    Path.Combine(folder, $"pakchunkWwise-Windows{source}")
                     ],
                 KindOfMod.Characters => [
                     Path.Combine(folder, $"pakchunkCharacter-Windows{source}")
@@ -110,12 +103,12 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 _ => throw new NotImplementedException("Invalid kind of mod."),
             };
 
-            informer($"{(enable ? "Enabling" : "Disabling")} {kind} mods".AsLog(TOGGLE));
+            informer($"{(enable ? "Enabling" : "Disabling")} {kind} mods".AsLog(LogConstants.TOGGLE));
             foreach (var file in files)
             {
                 informer(file.ChangeExtensionIfExists(destination) 
-                    ? $"File {file} found".AsLog(TOGGLE) 
-                    : $"File {file} not found. Skipping toggle.".AsLog(TOGGLE)
+                    ? $"File {Path.GetFileName(file)} found".AsLog(LogConstants.TOGGLE) 
+                    : $"File {Path.GetFileName(file)} not found. Skipping toggle.".AsLog(LogConstants.TOGGLE)
                 );
             }
 
@@ -129,30 +122,29 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> Restore(KindOfMod kind, bool dooverride, Action<string> informer)
         {
-            var configuration = Configuration.Load();
-            if (configuration is null || string.IsNullOrWhiteSpace(configuration?.Folders?.GameContent))
+            if (string.IsNullOrWhiteSpace(Configuration.Folders?.GameContent))
             {
-                informer("Game content folder is not set. Skipping restore.".AsLog(RESTORE));
+                informer("Game content folder is not set. Skipping restore.".AsLog(LogConstants.RESTORE));
                 return false;
             }
 
-            var backup = GetValidBackupResources(kind, configuration, informer);
+            var backup = GetValidBackupResources(kind, informer);
             if (backup.Length == 0)
                 return false;
 
-            informer("Restoring files...".AsLog(RESTORE));
+            informer("Restoring files...".AsLog(LogConstants.RESTORE));
             var time = Stopwatch.StartNew();
 
             var task = Task.Run(() =>
             {
                 foreach (var folder in backup.Where(x => !string.IsNullOrWhiteSpace(x)))
-                    folder.MergeDirectory(configuration!.Folders.GameContent, dooverride);
+                    folder.MergeDirectory(Configuration!.Folders.GameContent, dooverride);
             });
 
             await task;
 
             time.Stop();
-            informer($"Files restored - {time.GetHumaneElapsedTime()}".AsLog(RESTORE));
+            informer($"Files restored - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.RESTORE));
 
             return true;
         }
@@ -160,20 +152,20 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <summary>
         ///     Get valid backup resources
         /// </summary>
-        private static string[] GetValidBackupResources(KindOfMod kind, IEnvironment? configuration, Action<string> informer)
+        private string[] GetValidBackupResources(KindOfMod kind, Action<string> informer)
         {
             (string name, string folder)[] folders = kind switch
             {
                 KindOfMod.All => [
-                    ("Characters", configuration?.Folders?.BackupResources?.Characters ?? string.Empty),
-                    ("UI", configuration?.Folders?.BackupResources?.Ui ?? string.Empty),
-                    ("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty),
-                    ("Audio", configuration?.Folders?.BackupResources?.Audio ?? string.Empty)
+                    ("Characters", Configuration?.Folders?.BackupResources?.Characters ?? string.Empty),
+                    ("UI", Configuration?.Folders?.BackupResources?.Ui ?? string.Empty),
+                    ("Movies", Configuration?.Folders?.BackupResources?.Movies ?? string.Empty),
+                    ("Audio", Configuration?.Folders?.BackupResources?.Audio ?? string.Empty)
                     ],
-                KindOfMod.Characters => [("Characters", configuration?.Folders?.BackupResources?.Characters ?? string.Empty)],
-                KindOfMod.UI => [("UI", configuration?.Folders?.BackupResources?.Ui ?? string.Empty)],
-                KindOfMod.Movies => [("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty)],
-                KindOfMod.Audio => [("Audio", configuration?.Folders?.BackupResources?.Audio ?? string.Empty)],
+                KindOfMod.Characters => [("Characters", Configuration?.Folders?.BackupResources?.Characters ?? string.Empty)],
+                KindOfMod.UI => [("UI", Configuration?.Folders?.BackupResources?.Ui ?? string.Empty)],
+                KindOfMod.Movies => [("Movies", Configuration?.Folders?.BackupResources?.Movies ?? string.Empty)],
+                KindOfMod.Audio => [("Audio", Configuration?.Folders?.BackupResources?.Audio ?? string.Empty)],
                 _ => throw new NotImplementedException("Invalid kind of mod."),
             };
 
@@ -182,7 +174,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 {
                     if (string.IsNullOrEmpty(tuple.folder) || !Directory.Exists(tuple.folder))
                     {
-                        informer($"Backup folder for category {tuple.name} cannot be found".AsLog(RESTORE));
+                        informer($"Backup folder for category {tuple.name} cannot be found".AsLog(LogConstants.RESTORE));
                         return false;
                     }
 
@@ -200,17 +192,16 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (disabled is null || disabled.Length == 0)
                 return;
 
-            var configuration = Configuration.Load();
-            if (configuration?.Folders?.BackupResources is null)
+            if (Configuration.Folders?.BackupResources is null)
             {
-                informer("Backup content folder is not set. Skipping restore.".AsLog(PATCH));
+                informer("Backup content folder is not set. Skipping restore.".AsLog(LogConstants.PATCH));
                 return;
             }
 
             var unpacked = disabled.Where(mod => mod.Metadata.Unpacked && !mod.Metadata.Active).ToArray();
             if (unpacked.Length > 0)
             {
-                informer("Cleaning disabled mods unpacked".AsLog(PATCH));
+                informer("Cleaning disabled mods unpacked".AsLog(LogConstants.PATCH));
 
                 var content = Unpacker.GetExtractionFolder();
 
@@ -226,7 +217,6 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
                         // Set correct status
                         mod.Metadata.Unpacked = false;
-                        mod.Metadata.Active = false;
                         mod.Update();
                     }
                 });
@@ -235,21 +225,21 @@ namespace MarvelRivalManager.Library.Services.Implementation
             var patched = disabled.Where(mod => mod.Metadata.Active).ToArray();
             if (patched.Length > 0)
             {
-                informer("Cleaning disabled mods already patched".AsLog(PATCH));
+                informer("Cleaning disabled mods already patched".AsLog(LogConstants.PATCH));
                 await Task.Run(() =>
                 {
                     foreach (var mod in patched)
                     {
                         foreach (var relativePath in mod.Metadata.FilePaths ?? [])
                         {
-                            var backup = LookupOnBackup(configuration.Folders.BackupResources, relativePath);
+                            var backup = LookupOnBackup(Configuration.Folders.BackupResources, relativePath);
                             if (string.IsNullOrEmpty(backup))
                             {
-                                informer($"File for restore from backup cannot be found => {relativePath}".AsLog(PATCH));
+                                informer($"File for restore from backup cannot be found => {relativePath}".AsLog(LogConstants.PATCH));
                                 continue;
                             }
 
-                            Path.Combine(configuration.Folders.GameContent, relativePath.TrimStart('\\'))
+                            Path.Combine(Configuration.Folders.GameContent, relativePath.TrimStart('\\'))
                                 .OverrideFileWith(backup);
                         }
 
@@ -285,15 +275,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 if (Resources.TryGetValue(kind, out var files))
                     return files;
 
-                var folder = kind switch
-                {
-                    KindOfMod.Characters => backups.Characters,
-                    KindOfMod.UI => backups.Ui,
-                    KindOfMod.Movies => backups.Movies,
-                    KindOfMod.Audio => backups.Audio,
-                    _ => string.Empty,
-                };
-
+                var folder = backups.Get(kind);
                 Resources.Add(kind, string.IsNullOrEmpty(folder) ? [] : folder.GetAllFilesFromDirectory());
                 return Resources[kind];
             }

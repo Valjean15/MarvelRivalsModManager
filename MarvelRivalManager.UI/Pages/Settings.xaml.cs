@@ -1,6 +1,5 @@
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.UI.Configuration;
-
 using Microsoft.UI.Xaml.Controls;
 
 namespace MarvelRivalManager.UI.Pages

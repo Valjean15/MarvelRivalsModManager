@@ -44,7 +44,14 @@ namespace MarvelRivalManager.Library.Util
             if (!File.Exists(file))
                 return default;
 
-            return JsonSerializer.Deserialize<T>(File.ReadAllText(file), JsonOptions);
+            try
+            {
+                return JsonSerializer.Deserialize<T>(File.ReadAllText(file), JsonOptions);
+            }
+            catch
+            {
+                return default;
+            }
         }
 
         public static void WriteFileContent<T>(this string file, T values)

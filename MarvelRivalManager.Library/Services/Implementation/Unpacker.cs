@@ -5,33 +5,26 @@ using MarvelRivalManager.Library.Util;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Readers;
+
 using System.Diagnostics;
 using System.IO.Compression;
 
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IUnpacker"/>
-    internal class Unpacker(IEnvironment configuration) : IUnpacker
+    internal class Unpacker(IEnvironment configuration, IDirectoryCheker cheker) : IUnpacker
     {
-        #region Constants
-
-        private const string MERGE = "MERGE";
-        private const string UNPACK = "UNPCK";
-
-        #endregion
-
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
+        private readonly IDirectoryCheker Cheker = cheker;
         #endregion
 
         #region Properties
-        public string ExecutableFile { get; set; } = string.Empty;
         public string ExtractionFolder { get; set; } = string.Empty;
-        public bool CanUsePackUnpacker => !string.IsNullOrEmpty(ExecutableFile) && File.Exists(ExecutableFile);
         #endregion
 
-        /// <see cref="IUnpacker.StoreMetadata(Mod)"/>
-        public async ValueTask<bool> StoreMetadata(Mod mod)
+        /// <see cref="IUnpacker.CanBeUnPacked(Mod)"/>
+        public async ValueTask<bool> CanBeUnPacked(Mod mod)
         {
             return ValidateConfiguration() && await UnpackInternal(mod);
         }
@@ -44,7 +37,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             if (!Directory.Exists(ExtractionFolder))
             {
-                informer("Extraction folder do not exist, creating folder...".AsLog(UNPACK));
+                informer("Extraction folder do not exist, creating folder...".AsLog(LogConstants.UNPACK));
                 ExtractionFolder.CreateDirectoryIfNotExist();
             }
             else
@@ -55,39 +48,39 @@ namespace MarvelRivalManager.Library.Services.Implementation
             var invalid = mods.Where(x => !x.Metadata.Valid).OrderBy(mod => mod.Metadata.Order).ToArray();
             if (invalid is not null && invalid.Length > 0)
             {
-                informer("Some mods are invalid, please validate the metadata...".AsLog(UNPACK));
+                informer("Some mods are invalid, please validate the metadata...".AsLog(LogConstants.UNPACK));
                 foreach (var mod in invalid)
-                    informer($"- {mod}".AsLog(UNPACK));
+                    informer($"- {mod}".AsLog(LogConstants.UNPACK));
             }
 
             var valid = mods.Where(x => x.Metadata.Valid).OrderBy(mod => mod.Metadata.Order).ToArray();
             if (valid is null || valid.Length == 0)
             {
-                informer("No valids mods to unpack...".AsLog(UNPACK));
+                informer("No valids mods to unpack...".AsLog(LogConstants.UNPACK));
                 return;
             }
 
-            informer("Unpacking mods...".AsLog(UNPACK));
+            informer("Unpacking mods...".AsLog(LogConstants.UNPACK));
             var time = Stopwatch.StartNew();
 
             foreach (var mod in valid)
             {
-                informer($"- Unpacking mod {mod}...".AsLog(UNPACK));
+                informer($"- Unpacking mod {mod}...".AsLog(LogConstants.UNPACK));
                 if (!(await UnpackInternal(mod)))
                 {
-                    informer($"- Failed to unpack mod {mod}".AsLog(UNPACK));
+                    informer($"- Failed to unpack mod {mod}".AsLog(LogConstants.UNPACK));
                     continue;
                 }
 
                 mod.Metadata.Unpacked = true;
-                await mod.Metadata.Update(mod.File);
+                await mod.Metadata.SetSystemInformation(mod.File);
 
                 await mod.File.ExtractionContent.MergeDirectoryAsync(ExtractionFolder);
                 mod.File.Extraction.DeleteDirectoryIfExists();
             }
 
             time.Stop();
-            informer($"Unpacking mods complete - {time.GetHumaneElapsedTime()}".AsLog(UNPACK));
+            informer($"Unpacking mods complete - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.UNPACK));
         }
 
         /// <see cref="IUnpacker.GetExtractionFolder(Action{string}?)"/>
@@ -103,21 +96,19 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private bool ValidateConfiguration(Action<string>? informer = null)
         {
-            var configuration = Configuration.Load();
-            if (string.IsNullOrEmpty(configuration?.Folders?.UnpackerExecutable))
+            if (string.IsNullOrEmpty(Configuration.Folders?.UnpackerExecutable))
             {
                 if (informer is not null)
-                    informer("The unpacker executable path is required.".AsLog(UNPACK));
+                    informer("The unpacker executable path is required.".AsLog(LogConstants.UNPACK));
 
                 return false;
             }
 
             // Properties
-            ExecutableFile = $"{configuration.Folders.UnpackerExecutable}/repak.exe";
-            ExtractionFolder = $"{configuration.Folders.UnpackerExecutable}/extraction";
+            ExtractionFolder = $"{Configuration.Folders.UnpackerExecutable}/extraction";
 
-            if (!CanUsePackUnpacker && informer is not null)
-                informer("The unpacker executable do not exist on the unpacker folder.".AsLog(UNPACK));
+            if (!Cheker.UnpackerExist() && informer is not null)
+                informer("The unpacker executable do not exist on the unpacker folder.".AsLog(LogConstants.UNPACK));
 
             return true;
         }
@@ -182,19 +173,22 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (!Directory.Exists(file.Extraction))
                 return false;
 
-            // The mod contain the raw files
-            if (Directory.Exists(file.ExtractionContent))
+            if (Cheker.ModRawStructure(file.Extraction) && Directory.Exists(file.ExtractionContent))
                 return true;
 
-            var pak = Directory.GetFiles(file.Extraction, "*.pak").FirstOrDefault();
-            if (string.IsNullOrEmpty(pak))
+            var pakfiles = Directory.GetFiles(file.Extraction, "*.pak");
+            if (pakfiles is null || pakfiles.Length == 0)
                 return false;
 
-            var pakinfo = new FileInformation(pak);
-            if (!(await ExtractPakFile(pakinfo)))
-                return false;
+            foreach (var pak in pakfiles)
+            {
+                var pakinfo = new FileInformation(pak);
+                if (!(await ExtractPakFile(pakinfo)))
+                    return false;
 
-            pakinfo.Extraction.MergeDirectory(file.Extraction);
+                pakinfo.Extraction.MergeDirectory(file.Extraction);
+            }
+
             return true;
         }
 
@@ -203,14 +197,14 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> ExtractPakFile(FileInformation file)
         {
-            if (!CanUsePackUnpacker)
+            if (!Cheker.UnpackerExist())
                 return false;
 
             try
             {
                 using var process = Process.Start(new ProcessStartInfo
                 {
-                    FileName = ExecutableFile,
+                    FileName = $"{Configuration.Folders.UnpackerExecutable}/repak.exe",
                     Arguments = $"unpack \"{file.Filepath}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true

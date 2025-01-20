@@ -10,7 +10,7 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
         ///     Unpack the mods into the extraction folder
         /// </summary>
-        ValueTask<bool> StoreMetadata(Mod mods);
+        ValueTask<bool> CanBeUnPacked(Mod mods);
 
         /// <summary>
         ///     Unpack the mods into the extraction folder

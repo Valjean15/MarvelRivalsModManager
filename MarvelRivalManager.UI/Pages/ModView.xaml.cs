@@ -1,4 +1,5 @@
 using MarvelRivalManager.Library.Entities;
+using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 using MarvelRivalManager.UI.Helper;
 using MarvelRivalManager.UI.ViewModels;
@@ -10,7 +11,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 
 using System;
-
+using System.Linq;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 
@@ -21,6 +22,12 @@ namespace MarvelRivalManager.UI.Pages
     /// </summary>
     public sealed partial class ModView : Page
     {
+        #region Dependencies
+
+        private readonly IModManager m_manager = Services.Get<IModManager>();
+
+        #endregion
+
         public ModInputViewModel? Mod { get; set; } = null;
         public ModView()
         {
@@ -37,7 +44,7 @@ namespace MarvelRivalManager.UI.Pages
             if (e.Parameter is not ModViewModel input)
                 return;
 
-            Mod = new ModInputViewModel(input.Index, input.Values);
+            Mod = new ModInputViewModel(input.Index, input.File.Filepath);
 
             FilePaths.IsReadOnly = false;
             FilePaths.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), Mod.Files);
@@ -63,20 +70,22 @@ namespace MarvelRivalManager.UI.Pages
             Frame.GoBack();
         }
 
-        private void SaveChanges_Click(object sender, RoutedEventArgs e)
+        private async void SaveChanges_Click(object sender, RoutedEventArgs e)
         {
-            Mod!.Values.Metadata.Tags = Mod.InputTags?.Split(", ") ?? [];
+            Mod!.Metadata.Tags = (Mod.InputTags?.Split(", ") ?? [])
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToArray();
 
             // Move image to the right location
-            if (!string.IsNullOrEmpty(Mod.Values.Metadata.Logo))
+            if (!string.IsNullOrEmpty(Mod.Metadata.Logo))
             {
-                Mod.Values.File.ImagesLocation.CreateDirectoryIfNotExist();
-                Mod.Values.Metadata.Logo = 
-                    Mod.Values.Metadata.Logo.MakeSafeMove(
-                        System.IO.Path.Combine(Mod.Values.File.ImagesLocation, System.IO.Path.GetFileName(Mod.Values.Metadata.Logo)));
+                Mod.File.ImagesLocation.CreateDirectoryIfNotExist();
+                Mod.Metadata.Logo = 
+                    Mod.Metadata.Logo.MakeSafeCopy(
+                        System.IO.Path.Combine(Mod.File.ImagesLocation, System.IO.Path.GetFileName(Mod.Metadata.Logo)));
             }
 
-            Mod.Values.Update();
+            await m_manager.Update(Mod);
             Frame.GoBack();
         }
 
@@ -104,10 +113,10 @@ namespace MarvelRivalManager.UI.Pages
             var file = await picker.PickSingleFileAsync();
             if (file is not null && !string.IsNullOrEmpty(file.Path))
             {
-                Mod!.Values.Metadata.Logo = file.Path;
+                Mod!.Metadata.Logo = file.Path;
             }
 
-            LogoPlaceholder.Source = new BitmapImage(new Uri(Mod!.NullableLogo));
+            LogoPlaceholder.Source = new BitmapImage(new Uri(Mod!.NonNullableLogo));
             LogoPlaceholder.Visibility = Mod!.HasLogo ? Visibility.Visible : Visibility.Collapsed;
             ConnectedElement.Visibility = Mod!.NoHasLogo ? Visibility.Visible : Visibility.Collapsed;
 

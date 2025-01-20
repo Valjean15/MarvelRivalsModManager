@@ -1,4 +1,7 @@
-﻿namespace MarvelRivalManager.Library.Services.Interface
+﻿using MarvelRivalManager.Library.Entities;
+using Microsoft.Extensions.Configuration;
+
+namespace MarvelRivalManager.Library.Services.Interface
 {
     /// <summary>
     ///     Configuration of the application
@@ -25,6 +28,16 @@
         ///     Game content used to apply mods
         /// </summary>
         public string GameContent { get; set; } = string.Empty;
+
+        /// <summary>
+        ///    Mega folder used to store the backup game content
+        /// </summary>
+        public string MegaFolder { get; set; } = string.Empty;
+
+        /// <summary>
+        ///    Download folder used to store the downloaded resources
+        /// </summary>
+        public string DownloadFolder { get; set; } = string.Empty;
 
         /// <summary>
         ///     Game content backup used to restore the original game content
@@ -68,5 +81,35 @@
         ///     Game content backup for Audio
         /// </summary>
         public string Audio { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Get folder by kind of mod
+        /// </summary>
+        public string Get(KindOfMod kind)
+        {
+            return kind switch
+            {
+                KindOfMod.Characters => Characters,
+                KindOfMod.Audio => Audio,
+                KindOfMod.Movies => Movies,
+                KindOfMod.UI => Ui,
+                _ => string.Empty
+            };
+        }
+
+        /// <summary>
+        ///     Basic structure of the backup folders
+        /// </summary>
+        public static string[] BasicStructure(KindOfMod kind)
+        {
+            return kind switch
+            {
+                KindOfMod.Characters => ["Marvel", "Characters", "VFX"],
+                KindOfMod.UI => ["Marvel", "Marvel_LQ", "UI"],
+                KindOfMod.Movies => ["Marvel", "Movies", "Movies_HeroSkill", "Movies_Levels"],
+                KindOfMod.Audio => ["Marvel", "WwiseAudio", "Wwise"],
+                _ => []
+            };
+        }
     }
 }

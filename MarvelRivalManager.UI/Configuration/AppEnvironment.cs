@@ -55,15 +55,19 @@ namespace MarvelRivalManager.UI.Configuration
                 var disabled = Path.Combine(UserSettingsFolder, "disabled");
                 var enabled = Path.Combine(UserSettingsFolder, "enabled");
                 var unpacker = Path.Combine(UserSettingsFolder, "unpacker");
+                var download = Path.Combine(UserSettingsFolder, "download");
 
                 disabled.CreateDirectoryIfNotExist();
                 enabled.CreateDirectoryIfNotExist();
                 unpacker.CreateDirectoryIfNotExist();
+                download.CreateDirectoryIfNotExist();
 
                 // Create default user settings
                 Folders = new Folders()
                 {
                     GameContent = SteamFolderLookup.GetGameFolderByRelativePath(Folders.GameContent),
+                    MegaFolder = Folders.MegaFolder,
+                    DownloadFolder = download,
                     ModsDisabled = disabled,
                     ModsEnabled = enabled,
                     UnpackerExecutable = unpacker,

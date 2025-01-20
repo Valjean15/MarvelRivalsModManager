@@ -15,6 +15,7 @@ namespace MarvelRivalManager.UI.Pages
     public sealed partial class Console : Page
     {
         #region Dependencies
+        private readonly IEnvironment m_environment = Services.Get<IEnvironment>();
         private readonly IUnpacker m_unpacker = Services.Get<IUnpacker>();
         private readonly IPatcher m_patcher = Services.Get<IPatcher>();
         private readonly IModManager m_manager = Services.Get<IModManager>();
@@ -22,7 +23,6 @@ namespace MarvelRivalManager.UI.Pages
 
         #region Fields
         private readonly StringBuilder Logs = new();
-        private Mod[] Mods = [];
         #endregion
 
         public Console()
@@ -34,13 +34,13 @@ namespace MarvelRivalManager.UI.Pages
 
         private void Page_Loaded(object _, RoutedEventArgs __)
         {
-            Mods = m_manager.All().Where(mod => mod.Metadata.Enabled).ToArray();
+            m_environment.Load();
         }
 
         private async void UnpackButton_Click(object sender, RoutedEventArgs e)
         {
             IsLoading(true);
-            await m_unpacker.Unpack(Mods, Print);
+            await m_unpacker.Unpack(m_manager.All().Where(mod => mod.Metadata.Enabled).ToArray(), Print);
             IsLoading(false);
         }
 
@@ -56,17 +56,8 @@ namespace MarvelRivalManager.UI.Pages
             if (sender is not MenuFlyoutItem item)
                 return;
 
-            var kind = item.Tag switch
-            {
-                "characters" => KindOfMod.Characters,
-                "movies" => KindOfMod.Movies,
-                "ui" => KindOfMod.UI,
-                "audio" => KindOfMod.Audio,
-                _ => KindOfMod.All,
-            };
-
             IsLoading(true);
-            await m_patcher.HardRestore(kind, Print);
+            await m_patcher.HardRestore(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), Print);
             IsLoading(false);
         }
 
@@ -75,16 +66,7 @@ namespace MarvelRivalManager.UI.Pages
             if (sender is not MenuFlyoutItem item)
                 return;
 
-            var kind = item.Tag switch
-            {
-                "characters" => KindOfMod.Characters,
-                "movies" => KindOfMod.Movies,
-                "ui" => KindOfMod.UI,
-                "audio" => KindOfMod.Audio,
-                _ => KindOfMod.All,
-            };
-
-            m_patcher.Toggle(kind, true, Print);
+            m_patcher.Toggle(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), true, Print);
         }
 
         private void DisableButton_Click(object sender, RoutedEventArgs e)
@@ -92,16 +74,7 @@ namespace MarvelRivalManager.UI.Pages
             if (sender is not MenuFlyoutItem item)
                 return;
 
-            var kind = item.Tag switch
-            {
-                "characters" => KindOfMod.Characters,
-                "movies" => KindOfMod.Movies,
-                "ui" => KindOfMod.UI,
-                "audio" => KindOfMod.Audio,
-                _ => KindOfMod.All,
-            };
-
-            m_patcher.Toggle(kind, false, Print);
+            m_patcher.Toggle(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), false, Print);
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
@@ -131,6 +104,18 @@ namespace MarvelRivalManager.UI.Pages
         {
             IsInProgress.IsIndeterminate = loading;
             IsInProgress.Value = loading ? 0 : 100;
+        }
+
+        private KindOfMod GetKindFromTag(string tag)
+        {
+            return tag switch
+            {
+                "characters" => KindOfMod.Characters,
+                "movies" => KindOfMod.Movies,
+                "ui" => KindOfMod.UI,
+                "audio" => KindOfMod.Audio,
+                _ => KindOfMod.All,
+            };
         }
 
         #endregion

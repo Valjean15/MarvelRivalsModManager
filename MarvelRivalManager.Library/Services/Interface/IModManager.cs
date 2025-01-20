@@ -13,14 +13,11 @@ namespace MarvelRivalManager.Library.Services.Interface
         public Mod[] All();
 
         /// <summary>
-        ///    Enable a mod
+        ///     Get all mods
         /// </summary>
-        public ValueTask<Mod> Enable(Mod mod);
+        public string[] AllAsFilepaths();
 
-        /// <summary>
-        ///    Disable a mod
-        /// </summary>
-        public ValueTask<Mod> Disable(Mod mod);
+        #region CRUD
 
         /// <summary>
         ///     Add a mod to the manager
@@ -28,9 +25,16 @@ namespace MarvelRivalManager.Library.Services.Interface
         public ValueTask<Mod> Add(string filepath);
 
         /// <summary>
+        ///     Update a mod from the manager
+        /// </summary>
+        public ValueTask<Mod> Update(Mod mod);
+
+        /// <summary>
         ///     Remove a mod from manager
         /// </summary>
         public void Delete(Mod mod);
+
+        #endregion
 
         /// <summary>
         ///     Get supported extension for the mods

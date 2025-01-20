@@ -8,21 +8,21 @@ namespace MarvelRivalManager.UI.ViewModels
 {
     public class ModInputViewModel : ModViewModel
     {
-        public ModInputViewModel(int index, Mod mod) : base(index, mod)
+        public ModInputViewModel(int index, string filepath) : base(index, filepath)
         {
-            InputTags = string.Join(", ", Values.Metadata.Tags);
+            InputTags = string.Join(", ", Metadata.Tags);
         }
 
         public string InputTags { get; set; }
 
         #region Read
-        public string SystemTags => string.Join(", ", Values.Metadata.SystemTags);
+        public string SystemTags => string.Join(", ", Metadata.SystemTags);
 
         public string Files { 
             get 
             {
                 var builder = new StringBuilder();
-                foreach (var file in Values.Metadata.FilePaths)
+                foreach (var file in Metadata.FilePaths)
                 {
                     builder.AppendLine(file);
                 }
@@ -34,58 +34,49 @@ namespace MarvelRivalManager.UI.ViewModels
         #endregion
     }
 
-    public class ModViewModel(int index, Mod mod)
+    public class ModViewModel(int index, string filepath) : Mod(filepath)
     {
         public int Index { get; set; } = index;
-        public Mod Values { get; set; } = mod;
 
         #region View properties
         public string Name
         {
             get
             {
-                if (!string.IsNullOrEmpty(Values.Metadata.Name))
-                    return Values.Metadata.Name;
+                if (!string.IsNullOrEmpty(Metadata.Name))
+                    return Metadata.Name;
 
-                if (!string.IsNullOrEmpty(Values.File.Filename))
-                    return Values.File.Filename;
+                if (!string.IsNullOrEmpty(File.Filename))
+                    return File.Filename;
 
                 return "Unknown";
             }
         }
-
         public string Tags
         {
             get
             {
-                var value = string.Join(", ", Values.Metadata.Tags.Concat(Values.Metadata.SystemTags)
+                var value = string.Join(", ", Metadata.Tags.Concat(Metadata.SystemTags)
                     .Where(tag => !string.IsNullOrWhiteSpace(tag)));
                 return string.IsNullOrEmpty(value) ? "[No tags]" : value;
             }
         }
-
         public string Status
         {
             get
             {
                 return string.Join(", ", [
-                    Values.Metadata.Valid ? "Valid" : "Invalid",
-                    Values.Metadata.Unpacked ? "Unpacked" : "Packed",
-                    Values.Metadata.Active ? "Active" : "Inactive"
+                    Metadata.Valid ? "Valid" : "Invalid",
+                    Metadata.Unpacked ? "Unpacked" : "Packed",
+                    Metadata.Active ? "Active" : "Inactive"
                 ]);
             }
         }
-
-        public bool Invalid => !Values.Metadata.Valid;
-        public string NullableLogo => string.IsNullOrEmpty(Values.Metadata.Logo) ? "ms-appx:///Assets/DefaultImage.jpg" : Values.Metadata.Logo;
-        public bool NoHasLogo => string.IsNullOrEmpty(Values.Metadata.Logo);
-        public bool HasLogo => !string.IsNullOrEmpty(Values.Metadata.Logo);
+        public bool Invalid => !Metadata.Valid;
+        public string NonNullableLogo => string.IsNullOrEmpty(Metadata.Logo) ? "ms-appx:///Assets/DefaultImage.jpg" : Metadata.Logo;
+        public bool NoHasLogo => string.IsNullOrEmpty(Metadata.Logo);
+        public bool HasLogo => !string.IsNullOrEmpty(Metadata.Logo);
         #endregion
-
-        public override string ToString()
-        {
-            return Values.ToString();
-        }
     }
 
     public partial class ModCollection : ObservableCollection<ModViewModel>

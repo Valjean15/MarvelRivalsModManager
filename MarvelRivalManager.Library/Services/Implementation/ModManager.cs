@@ -12,26 +12,85 @@ namespace MarvelRivalManager.Library.Services.Implementation
         private readonly IUnpacker Unpacker = unpacker;
         #endregion
 
+        /// <see cref="IModManager.All"/>
+        public Mod[] All()
+        {
+            Configuration.Folders.ModsEnabled.CreateDirectoryIfNotExist();
+            Configuration.Folders.ModsDisabled.CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsEnabled, "profiles").CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsDisabled, "profiles").CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsEnabled, "images").CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsDisabled, "images").CreateDirectoryIfNotExist();
+
+            return [.. ExtractMods(Configuration.Folders.ModsEnabled)
+                .Concat(ExtractMods(Configuration.Folders.ModsDisabled))
+                .OrderBy(mod => mod.Metadata.Order)
+                .ThenBy(mod => mod.Metadata.Name)
+                ];
+        }
+
+        /// <see cref="IModManager.AllAsFilepaths"/>
+        public string[] AllAsFilepaths()
+        {
+            Configuration.Folders.ModsEnabled.CreateDirectoryIfNotExist();
+            Configuration.Folders.ModsDisabled.CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsEnabled, "profiles").CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsDisabled, "profiles").CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsEnabled, "images").CreateDirectoryIfNotExist();
+            Path.Combine(Configuration.Folders.ModsDisabled, "images").CreateDirectoryIfNotExist();
+
+            var patterns = SupportedExtentensions().Select(extension => $"*{extension}");
+            var enabled = patterns.SelectMany(pattern => Directory.GetFiles(Configuration.Folders.ModsEnabled, pattern)).ToArray();
+            var disabled = patterns.SelectMany(pattern => Directory.GetFiles(Configuration.Folders.ModsDisabled, pattern)).ToArray();
+
+            return [.. enabled, .. disabled];
+        }
+
+        #region CRUD
+
         /// <see cref="IModManager.Add(string)"/>
         public async ValueTask<Mod> Add(string filepath)
         {
-            var configuration = Configuration.Load();
-            var destination = Path.Combine(configuration.Folders.ModsEnabled, Path.GetFileName(filepath));
+            var mod = new Mod(filepath);
 
-            filepath.MakeSafeCopy(destination);
-
-            new FileInformation(destination).ProfileLocation.CreateDirectoryIfNotExist();
-            var mod = new Mod(destination);
-
-            mod.Metadata.Valid = await Unpacker.StoreMetadata(mod);
+            // Evaluate mod
+            mod.Metadata.Valid = await Unpacker.CanBeUnPacked(mod);
             mod.Metadata.Enabled = mod.Metadata.Valid;
 
-            await mod.Metadata.Update(mod.File);
+            // If the mod is valid we can set system information
+            if (mod.Metadata.Valid)
+            {
+                await mod.SetSystemInformation();
+                mod.Update();
+            }
+
             mod.File.Extraction.DeleteDirectoryIfExists();
 
-            mod = Move(mod, mod.Metadata.Enabled 
-                ? configuration.Folders.ModsEnabled
-                : configuration.Folders.ModsDisabled);
+            Move(mod, mod.Metadata.Enabled
+                ? Configuration.Folders.ModsEnabled
+                : Configuration.Folders.ModsDisabled);
+
+            return mod;
+        }
+
+        /// <see cref="IModManager.Update(Mod)"/>
+        public async ValueTask<Mod> Update(Mod mod)
+        {
+            // Evaluate mod
+            mod.Metadata.Valid = await Unpacker.CanBeUnPacked(mod);
+
+            // If the mod is valid we can set system information
+            if (mod.Metadata.Valid)
+            {
+                await mod.SetSystemInformation();
+                mod.Update();
+            }
+
+            mod.File.Extraction.DeleteDirectoryIfExists();
+
+            Move(mod, mod.Metadata.Enabled
+                ? Configuration.Folders.ModsEnabled
+                : Configuration.Folders.ModsDisabled);
 
             return mod;
         }
@@ -42,60 +101,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             mod.Delete();
         }
 
-        /// <see cref="IModManager.All"/>
-        public Mod[] All()
-        {
-            var configuration = Configuration.Load();
-            if (configuration is null)
-                return [];
-
-            configuration.Folders.ModsEnabled.CreateDirectoryIfNotExist();
-            configuration.Folders.ModsDisabled.CreateDirectoryIfNotExist();
-            Path.Combine(configuration.Folders.ModsEnabled, "profiles").CreateDirectoryIfNotExist();
-            Path.Combine(configuration.Folders.ModsDisabled, "profiles").CreateDirectoryIfNotExist();
-            Path.Combine(configuration.Folders.ModsEnabled, "images").CreateDirectoryIfNotExist();
-            Path.Combine(configuration.Folders.ModsDisabled, "images").CreateDirectoryIfNotExist();
-
-            return [.. ExtractMods(configuration.Folders.ModsEnabled)
-                .Concat(ExtractMods(configuration.Folders.ModsDisabled))
-                .OrderBy(mod => mod.Metadata.Order)
-                .ThenBy(mod => mod.Metadata.Name)
-                ];
-        }
-
-        /// <see cref="IModManager.Enable(Mod)"/>
-        public async ValueTask<Mod> Enable(Mod mod)
-        {
-            if (mod.Metadata.Enabled)
-                return mod;
-
-            mod.Metadata.Valid = await Unpacker.StoreMetadata(mod);
-            mod.Metadata.Enabled = true;
-
-            await mod.Metadata.Update(mod.File);
-            mod.File.Extraction.DeleteDirectoryIfExists();
-
-            mod = Move(mod, Configuration.Load().Folders.ModsEnabled);
-
-            return mod;
-        }
-
-        /// <see cref="IModManager.Disable(Mod)"/>
-        public async ValueTask<Mod> Disable(Mod mod)
-        {
-            if (!mod.Metadata.Enabled)
-                return mod;
-
-            mod.Metadata.Valid = await Unpacker.StoreMetadata(mod);
-            mod.Metadata.Enabled = false;
-
-            await mod.Metadata.Update(mod.File);
-            mod.File.Extraction.DeleteDirectoryIfExists();
-
-            mod = Move(mod, Configuration.Load().Folders.ModsDisabled);
-
-            return mod;
-        }
+        #endregion
 
         /// <see cref="IModManager.SupportedExtentensions"/>
         public string[] SupportedExtentensions()
@@ -108,15 +114,13 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <summary>
         ///     Load the mods from the current configuration
         /// </summary>
-        private Mod[] ExtractMods(string? path)
+        private Mod[] ExtractMods(string path)
         {
-            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
-                return [];
-
             var patterns = SupportedExtentensions().Select(extension =>  $"*{extension}");
             var files = patterns.SelectMany(pattern => Directory.GetFiles(path, pattern)).ToArray();
             return files.Select(file => new Mod(file)).ToArray();
         }
+
 
         /// <summary>
         ///     Move mod to a specific folder
@@ -135,11 +139,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (!string.IsNullOrEmpty(mod.Metadata.Logo))
             {
                 var newLogoLocation = Path.Combine(info.ImagesLocation, Path.GetFileName(mod.Metadata.Logo));
-                if (!info.ImagesLocation.Equals(newLogoLocation))
-                {
-                    mod.Metadata.Logo.MakeSafeMove(newLogoLocation);
-                    mod.Metadata.Logo = newLogoLocation;
-                }
+                if (!mod.Metadata.Logo.Equals(newLogoLocation))
+                    mod.Metadata.Logo = mod.Metadata.Logo.MakeSafeMove(newLogoLocation);
             }               
 
             mod.File.Filepath = destination;

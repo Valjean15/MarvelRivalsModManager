@@ -51,7 +51,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Stretch="Uniform"
-                        Source="{x:Bind NullableLogo, Mode=OneWay}"
+                        Source="{x:Bind NonNullableLogo, Mode=OneWay}"
                         Visibility="{x:Bind HasLogo, Mode=OneWay}"
                     />
                 </StackPanel>
@@ -76,8 +76,8 @@
                     Height="10"
                 >
                     <StackPanel Orientation="Horizontal" Spacing="10">
-                        <FontIcon Visibility="{x:Bind Values.Metadata.Active}" Glyph="&#xE78C;" FontSize="15"/>
-                        <FontIcon Visibility="{x:Bind Values.Metadata.Unpacked}" Glyph="&#xE8B4;" FontSize="15"/>
+                        <FontIcon Visibility="{x:Bind Metadata.Active}" Glyph="&#xE78C;" FontSize="15"/>
+                        <FontIcon Visibility="{x:Bind Metadata.Unpacked}" Glyph="&#xE8B4;" FontSize="15"/>
                         <FontIcon Visibility="{x:Bind Invalid}" Glyph="&#xE7BA;" FontSize="15"/>
                     </StackPanel>
                 </GridViewItem>

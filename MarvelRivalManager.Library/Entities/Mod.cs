@@ -1,4 +1,5 @@
 ﻿using MarvelRivalManager.Library.Util;
+using System.Text.Json.Serialization;
 
 namespace MarvelRivalManager.Library.Entities
 {
@@ -26,9 +27,14 @@ namespace MarvelRivalManager.Library.Entities
         public Metadata Metadata { get; set; }
         public FileInformation File { get; set; }
 
+        public async ValueTask SetSystemInformation()
+        {
+            await Metadata.SetSystemInformation(File);
+        }
+
         public void Update()
         {
-            File.ProfileFilepath.WriteFileContent(Metadata);
+            Metadata.Update(File);
         }
 
         public void Delete()
@@ -74,6 +80,9 @@ namespace MarvelRivalManager.Library.Entities
     /// </summary>
     public class Metadata
     {
+        /// <summary>
+        ///    Constructor only needed for deserialize values
+        /// </summary>
         public Metadata()
         {
             
@@ -98,38 +107,66 @@ namespace MarvelRivalManager.Library.Entities
             else
             {
                 Name = file.Filename;
-                SystemTags = [file.Extension.Equals(".pak") ? ModTags.PakFile : ModTags.CompressedFile];
-                Store(file);
+                Update(file);
             }
         }
 
+        [JsonPropertyName("Order")]
         public int Order { get; set; }
+
+        [JsonPropertyName("Logo")]
         public string Logo { get; set; } = string.Empty;
+
+        [JsonPropertyName("SystemTags")]
         public string[] SystemTags { get; set; } = [];
+
+        [JsonPropertyName("Tags")]
         public string[] Tags { get; set; } = [];
+
+        [JsonPropertyName("FilePaths")]
         public string[] FilePaths { get; set; } = [];
+
+        [JsonPropertyName("Name")]
         public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("Enabled")]
         public bool Enabled { get; set; } = false;
+
+        [JsonPropertyName("Unpacked")]
         public bool Unpacked { get; set; } = false;
+
+        [JsonPropertyName("Active")]
         public bool Active { get; set; } = false;
+
+        [JsonPropertyName("Valid")]
         public bool Valid { get; set; } = false;
 
-        public async ValueTask Update(FileInformation file)
+        /// <summary>
+        ///     Set the system information of the mod
+        /// </summary>
+        public async ValueTask SetSystemInformation(FileInformation file)
         {
             var tagTask = Task.Run(() =>
             {
-                var tags = new List<string>();
-                if (file.ExtractionContent.DirectoryContainsSubfolder("UI"))
-                    tags.Add(ModTags.UI);
+                var tags = new List<string>
+                {
+                    file.Extension.Equals(".pak") ? ModTags.PakFile : ModTags.CompressedFile
+                };
 
-                if (file.ExtractionContent.DirectoryContainsSubfolder("Movies"))
-                    tags.Add(ModTags.Movies);
+                if (Directory.Exists(file.ExtractionContent))
+                {
+                    if (file.ExtractionContent.DirectoryContainsSubfolder("UI"))
+                        tags.Add(ModTags.UI);
 
-                if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
-                    tags.Add(ModTags.Character);
+                    if (file.ExtractionContent.DirectoryContainsSubfolder("Movies"))
+                        tags.Add(ModTags.Movies);
 
-                if (file.ExtractionContent.DirectoryContainsSubfolder("WwiseAudio") || file.ExtractionContent.DirectoryContainsSubfolder("Wwise"))
-                    tags.Add(ModTags.Audio);
+                    if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
+                        tags.Add(ModTags.Character);
+
+                    if (file.ExtractionContent.DirectoryContainsSubfolder("WwiseAudio") || file.ExtractionContent.DirectoryContainsSubfolder("Wwise"))
+                        tags.Add(ModTags.Audio);
+                }
 
                 tags.AddRange(SystemTags);
                 SystemTags = tags.Distinct().ToArray();
@@ -137,18 +174,24 @@ namespace MarvelRivalManager.Library.Entities
 
             var filePathTask = Task.Run(() =>
             {
-                FilePaths = [.. file.ExtractionContent
-                    .GetAllFilesFromDirectory()
-                    .Select(path => path.Replace(file.ExtractionContent, string.Empty)
-                )];
+                if (Directory.Exists(file.ExtractionContent))
+                {
+                    FilePaths = [.. file.ExtractionContent
+                        .GetAllFilesFromDirectory()
+                        .Select(path => path.Replace(file.ExtractionContent, string.Empty)
+                    )];
+                }
             });
 
             await Task.WhenAll(tagTask, filePathTask);
-            Store(file);
         }
 
-        private void Store(FileInformation file)
+        /// <summary>
+        ///     Update the metadata of the mod
+        /// </summary>
+        public void Update(FileInformation file)
         {
+            Path.Combine(file.Location, "profiles").CreateDirectoryIfNotExist();
             file.ProfileFilepath.WriteFileContent(this);
         }
     }

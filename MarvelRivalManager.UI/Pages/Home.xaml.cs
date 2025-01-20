@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 
 using System;
+using System.Collections.Generic;
 
 namespace MarvelRivalManager.UI.Pages
 {
@@ -14,7 +15,13 @@ namespace MarvelRivalManager.UI.Pages
     {
         #region Constants
         private static Type Settings => typeof(Settings);
-        private static string PageNamespace => Settings?.Namespace ?? string.Empty;
+        private static string PageNamespace => Settings.Namespace!;
+        private static readonly Dictionary<string, string> PageNames = new()
+        {
+            { Settings.Name, "Settings" },
+            { typeof(ModManager).Name, "Mods" },
+            { typeof(Console).Name, "Actions" }
+        };
         #endregion
 
         public Home()
@@ -37,27 +44,14 @@ namespace MarvelRivalManager.UI.Pages
             if (type is not null)
             {
                 container.Navigate(type, null, new DrillInNavigationTransitionInfo());
-                navigation.Header = GetPageName(type);
+                PageNames.TryGetValue(type.Name, out var name);
+                navigation.Header = name;
             }
         }
 
         #endregion
 
         #region Private Methods
-
-        /// <summary>
-        ///     Get page name by type
-        /// </summary>
-        private static string GetPageName(Type type)
-        {
-            return type.Name switch
-            {
-                "Settings" => "Settings",
-                "ModManager" => "Mods",
-                "Console" => "Actions",
-                _ => string.Empty,
-            };
-        }
 
         /// <summary>
         ///     Try to get the Type of a page using the tag of the NavigationViewItem

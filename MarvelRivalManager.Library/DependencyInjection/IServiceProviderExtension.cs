@@ -9,9 +9,11 @@ namespace Microsoft.Extensions.Configuration
         public static IServiceCollection AddMavelRivalManagerServices(this IServiceCollection service)
         {
             service
-                .AddTransient<IModManager, ModManager>()
-                .AddTransient<IUnpacker, Unpacker>()
-                .AddTransient<IPatcher, Patcher>()
+                .AddSingleton<IDirectoryCheker, DirectoryCheker>()
+                .AddSingleton<IResourcesClient, ResourcesClient>()
+                .AddSingleton<IModManager, ModManager>()
+                .AddSingleton<IUnpacker, Unpacker>()
+                .AddSingleton<IPatcher, Patcher>()
                 ;
 
             return service;

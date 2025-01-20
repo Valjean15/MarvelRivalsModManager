@@ -1,4 +1,6 @@
-﻿namespace MarvelRivalManager.Library.Util
+﻿using MarvelRivalManager.Library.Services.Interface;
+
+namespace MarvelRivalManager.Library.Util
 {
     public static class DirectoryExtensions
     {
@@ -85,6 +87,21 @@
 
             return files;
         }
+
+        public static bool DirectoryContainsSubfolders(this string path, string[] lookup)
+        {
+            if (!Directory.Exists(path))
+                return false;
+
+            return lookup.Aggregate(true, (acc, item) =>
+            {
+                if (!path.DirectoryContainsSubfolder(item))
+                    return false;
+
+                return acc;
+            });
+        }
+
         public static bool DirectoryContainsSubfolder(this string path, string lookup)
         {
             if (!Directory.Exists(path))
@@ -93,9 +110,10 @@
             string[] subDirs = Directory.GetDirectories(path, lookup, SearchOption.AllDirectories) ?? [];
             return subDirs.Length > 0;
         }
+
         public static void CreateDirectoryIfNotExist(this string path)
         {
-            if (!Directory.Exists(path))
+            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }

@@ -60,7 +60,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Stretch="Uniform"
-                        Source="{x:Bind Mod.NullableLogo, Mode=OneWay}"
+                        Source="{x:Bind Mod.NonNullableLogo, Mode=OneWay}"
                         Visibility="{x:Bind Mod.HasLogo, Mode=OneWay}"
                     />
                     <Button Name="ChangeLogoButton" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ChangeLogoClick">
@@ -70,11 +70,11 @@
                 
                 <StackPanel x:Name="CoordinatedElement" Grid.Column="1" VerticalAlignment="Top" Margin="20,0">
                     <TextBox 
-                        Text="{x:Bind Mod.Values.Metadata.Name, Mode=TwoWay}"
+                        Text="{x:Bind Mod.Metadata.Name, Mode=TwoWay}"
                         FontSize="20"
                         Margin="0,0,0,10"
                     />
-                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.Values.File.Filename, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
                     <component:ReadOnlyText Label="Status:" Value="{x:Bind Mod.Status, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
@@ -86,7 +86,7 @@
                         <TextBlock Text="Order:" FontSize="14" Margin="0,0,0,10" Width="100"/>
                         <NumberBox
                             Width="300"
-                            Value="{x:Bind Mod.Values.Metadata.Order, Mode=TwoWay}"
+                            Value="{x:Bind Mod.Metadata.Order, Mode=TwoWay}"
                             Minimum="0"
                             SpinButtonPlacementMode="Inline"
                             SmallChange="1"
@@ -109,20 +109,20 @@
             <Grid Grid.Row="3" Margin="0,30">
                 <StackPanel>
                     <TextBlock Text="File information" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,0,0,20"/>
-                    <component:ReadOnlyText Label="Filepath:" Value="{x:Bind Mod.Values.File.Filepath, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.Values.File.Filename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Location:" Value="{x:Bind Mod.Values.File.Location, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Extension:" Value="{x:Bind Mod.Values.File.Extension, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Filepath:" Value="{x:Bind Mod.File.Filepath, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Location:" Value="{x:Bind Mod.File.Location, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Extension:" Value="{x:Bind Mod.File.Extension, Mode=OneWay}" />
 
                     <TextBlock Text="Profile File information" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
-                    <component:ReadOnlyText Label="Filepath:" Value="{x:Bind Mod.Values.File.ProfileFilepath, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.Values.File.ProfileFilename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Location:" Value="{x:Bind Mod.Values.File.ProfileLocation, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Extension:" Value="{x:Bind Mod.Values.File.ProfileExtension, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Filepath:" Value="{x:Bind Mod.File.ProfileFilepath, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.File.ProfileFilename, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Location:" Value="{x:Bind Mod.File.ProfileLocation, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Extension:" Value="{x:Bind Mod.File.ProfileExtension, Mode=OneWay}" />
 
                     <TextBlock Text="Extraction information" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
-                    <component:ReadOnlyText Label="Path:" Value="{x:Bind Mod.Values.File.Extraction, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Content:" Value="{x:Bind Mod.Values.File.ExtractionContent, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Path:" Value="{x:Bind Mod.File.Extraction, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="Content:" Value="{x:Bind Mod.File.ExtractionContent, Mode=OneWay}" />
 
                     <StackPanel Padding="0,50,30,0">
                         <TextBlock Text="Mod files:" FontSize="14" Margin="0,0,0,10" Width="100"/>
