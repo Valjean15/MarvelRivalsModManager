@@ -106,7 +106,7 @@ namespace MarvelRivalManager.Library.Services.Interface
             {
                 KindOfMod.Characters => ["Marvel", "Characters", "VFX"],
                 KindOfMod.UI => ["Marvel", "Marvel_LQ", "UI"],
-                KindOfMod.Movies => ["Marvel", "Movies", "Movies_HeroSkill", "Movies_Levels"],
+                KindOfMod.Movies => ["Marvel", "Movies", "Movies_HeroSkill", "Movies_Level"],
                 KindOfMod.Audio => ["Marvel", "WwiseAudio", "Wwise"],
                 _ => []
             };

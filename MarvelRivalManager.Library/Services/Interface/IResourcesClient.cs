@@ -10,11 +10,11 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
         ///     Download a resource
         /// </summary>
-        public ValueTask<bool> Download(KindOfMod kind, Action<string> informer);
+        public ValueTask<bool> Download(KindOfMod kind, Action<string> informer, CancellationToken? cancellationToken = null);
 
         /// <summary>
         ///     Download a resource for unpacker
         /// </summary>
-        public ValueTask<bool> Unpacker(Action<string> informer);
+        public ValueTask<bool> Unpacker(Action<string> informer, CancellationToken? cancellationToken = null);
     }
 }

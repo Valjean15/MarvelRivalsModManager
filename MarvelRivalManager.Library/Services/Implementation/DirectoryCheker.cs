@@ -29,7 +29,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IDirectoryCheker.ModRawStructure(string)"/>
         public bool ModRawStructure(string folder)
         {
-            return !string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolders(["Marvel", "Marvel\\Content"]);
+            return !string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolders(["Marvel"]);
         }
 
         /// <see cref="IDirectoryCheker.UnpackerExist"/>
@@ -46,7 +46,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         public static bool BackupResource(string folder, string[] required)
         {
-            return string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolders(required);
+            return !string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolders(required);
         }
 
         #endregion

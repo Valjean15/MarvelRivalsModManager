@@ -107,8 +107,15 @@ namespace MarvelRivalManager.Library.Util
             if (!Directory.Exists(path))
                 return false;
 
-            string[] subDirs = Directory.GetDirectories(path, lookup, SearchOption.AllDirectories) ?? [];
-            return subDirs.Length > 0;
+            try
+            {
+                string[] subDirs = Directory.GetDirectories(path, lookup, SearchOption.AllDirectories) ?? [];
+                return subDirs.Length > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static void CreateDirectoryIfNotExist(this string path)

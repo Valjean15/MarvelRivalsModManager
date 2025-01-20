@@ -51,6 +51,21 @@
             </AppBarButton>
             <AppBarSeparator />
 
+            <AppBarButton Icon="Library" Label="Download">
+                <AppBarButton.Flyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Unpacker" Click="DownloadButton_Click" Tag="unpacker"/>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="All" Click="DownloadButton_Click" Tag="all"/>
+                        <MenuFlyoutItem Text="Characters" Click="DownloadButton_Click" Tag="characters"/>
+                        <MenuFlyoutItem Text="UI" Click="DownloadButton_Click" Tag="ui"/>
+                        <MenuFlyoutItem Text="Movies" Click="DownloadButton_Click" Tag="movies"/>
+                        <MenuFlyoutItem Text="Audio" Click="DownloadButton_Click" Tag="audio"/>
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarSeparator />
+            
             <AppBarButton Icon="Clear" Label="Clear" Click="ClearButton_Click" />
 
         </CommandBar>

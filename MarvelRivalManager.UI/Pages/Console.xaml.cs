@@ -19,6 +19,7 @@ namespace MarvelRivalManager.UI.Pages
         private readonly IUnpacker m_unpacker = Services.Get<IUnpacker>();
         private readonly IPatcher m_patcher = Services.Get<IPatcher>();
         private readonly IModManager m_manager = Services.Get<IModManager>();
+        private readonly IResourcesClient m_resources = Services.Get<IResourcesClient>();
         #endregion
 
         #region Fields
@@ -75,6 +76,22 @@ namespace MarvelRivalManager.UI.Pages
                 return;
 
             m_patcher.Toggle(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), false, Print);
+        }
+
+        private async void DownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuFlyoutItem item)
+                return;
+
+            var tag = item.Tag?.ToString() ?? string.Empty;
+            if (tag.Equals("unpacker"))
+            {
+                await m_resources.Unpacker(Print);
+            } 
+            else
+            {
+                await m_resources.Download(GetKindFromTag(tag), Print);
+            }
         }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)

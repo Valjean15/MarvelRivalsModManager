@@ -6,12 +6,13 @@ using System.Diagnostics;
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IPatcher"/>
-    internal class Patcher(IEnvironment configuration, IUnpacker unpacker, IModManager manager) : IPatcher
+    internal class Patcher(IEnvironment configuration, IUnpacker unpacker, IModManager manager, IDirectoryCheker cheker) : IPatcher
     {
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
         private readonly IUnpacker Unpacker = unpacker;
         private readonly IModManager Manager = manager;
+        private readonly IDirectoryCheker Cheker = cheker;
         #endregion
 
         #region Cache
@@ -130,7 +131,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             var backup = GetValidBackupResources(kind, informer);
             if (backup.Length == 0)
+            {
+                informer("No valid backup folder were found".AsLog(LogConstants.RESTORE));
                 return false;
+            }
 
             informer("Restoring files...".AsLog(LogConstants.RESTORE));
             var time = Stopwatch.StartNew();
@@ -154,18 +158,19 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private string[] GetValidBackupResources(KindOfMod kind, Action<string> informer)
         {
-            (string name, string folder)[] folders = kind switch
+            if (kind.Equals(KindOfMod.All))
             {
-                KindOfMod.All => [
-                    ("Characters", Configuration?.Folders?.BackupResources?.Characters ?? string.Empty),
-                    ("UI", Configuration?.Folders?.BackupResources?.Ui ?? string.Empty),
-                    ("Movies", Configuration?.Folders?.BackupResources?.Movies ?? string.Empty),
-                    ("Audio", Configuration?.Folders?.BackupResources?.Audio ?? string.Empty)
-                    ],
-                KindOfMod.Characters => [("Characters", Configuration?.Folders?.BackupResources?.Characters ?? string.Empty)],
-                KindOfMod.UI => [("UI", Configuration?.Folders?.BackupResources?.Ui ?? string.Empty)],
-                KindOfMod.Movies => [("Movies", Configuration?.Folders?.BackupResources?.Movies ?? string.Empty)],
-                KindOfMod.Audio => [("Audio", Configuration?.Folders?.BackupResources?.Audio ?? string.Empty)],
+                return new KindOfMod[] { KindOfMod.Characters, KindOfMod.UI, KindOfMod.Movies, KindOfMod.Audio }
+                    .SelectMany(category => GetValidBackupResources(category, informer))
+                    .ToArray();
+            }
+
+            (KindOfMod category, string folder)[] folders = kind switch
+            {
+                KindOfMod.Characters => [(KindOfMod.Characters, Configuration.Folders?.BackupResources?.Characters ?? string.Empty)],
+                KindOfMod.UI => [(KindOfMod.UI, Configuration.Folders?.BackupResources?.Ui ?? string.Empty)],
+                KindOfMod.Movies => [(KindOfMod.Movies, Configuration.Folders?.BackupResources?.Movies ?? string.Empty)],
+                KindOfMod.Audio => [(KindOfMod.Audio, Configuration.Folders?.BackupResources?.Audio ?? string.Empty)],
                 _ => throw new NotImplementedException("Invalid kind of mod."),
             };
 
@@ -174,11 +179,11 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 {
                     if (string.IsNullOrEmpty(tuple.folder) || !Directory.Exists(tuple.folder))
                     {
-                        informer($"Backup folder for category {tuple.name} cannot be found".AsLog(LogConstants.RESTORE));
+                        informer($"Backup folder for category {tuple.category} cannot be found".AsLog(LogConstants.RESTORE));
                         return false;
                     }
 
-                    return true;
+                    return Cheker.BackupResource(tuple.category);
                 })
                 .Select(tuple => tuple.folder)
                 .ToArray();
