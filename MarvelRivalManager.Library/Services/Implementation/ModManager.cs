@@ -66,13 +66,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IModManager.Enable(Mod)"/>
         public async ValueTask<Mod> Enable(Mod mod)
         {
-            if (mod.Metadata.Enabled || !await Unpacker.StoreMetadata(mod))
+            if (mod.Metadata.Enabled)
                 return mod;
 
-            mod.Metadata.Valid = true;
+            mod.Metadata.Valid = await Unpacker.StoreMetadata(mod);
             mod.Metadata.Enabled = true;
+
             await mod.Metadata.Update(mod.File);
             mod.File.Extraction.DeleteDirectoryIfExists();
+
             mod = Move(mod, Configuration.Load().Folders.ModsEnabled);
 
             return mod;
@@ -81,13 +83,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IModManager.Disable(Mod)"/>
         public async ValueTask<Mod> Disable(Mod mod)
         {
-            if (!mod.Metadata.Enabled || !await Unpacker.StoreMetadata(mod))
+            if (!mod.Metadata.Enabled)
                 return mod;
 
-            mod.Metadata.Valid = true;
+            mod.Metadata.Valid = await Unpacker.StoreMetadata(mod);
             mod.Metadata.Enabled = false;
-            mod.File.Extraction.DeleteDirectoryIfExists();
+
             await mod.Metadata.Update(mod.File);
+            mod.File.Extraction.DeleteDirectoryIfExists();
+
             mod = Move(mod, Configuration.Load().Folders.ModsDisabled);
 
             return mod;
@@ -130,9 +134,12 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             if (!string.IsNullOrEmpty(mod.Metadata.Logo))
             {
-                var newLogoLocation = Path.GetFileName(mod.Metadata.Logo);
+                var newLogoLocation = Path.Combine(info.ImagesLocation, Path.GetFileName(mod.Metadata.Logo));
                 if (!info.ImagesLocation.Equals(newLogoLocation))
-                    mod.Metadata.Logo.MakeSafeMove(Path.Combine(info.ImagesLocation, newLogoLocation));
+                {
+                    mod.Metadata.Logo.MakeSafeMove(newLogoLocation);
+                    mod.Metadata.Logo = newLogoLocation;
+                }
             }               
 
             mod.File.Filepath = destination;
