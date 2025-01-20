@@ -143,6 +143,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }               
 
             mod.File.Filepath = destination;
+            mod.Update();
             return mod;
         }
 
