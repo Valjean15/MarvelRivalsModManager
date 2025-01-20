@@ -104,6 +104,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 KindOfMod.Movies => [
                     Path.Combine(folder, $"pakchunkMovies-Windows{source}")
                     ],
+                KindOfMod.Audio => [
+                    Path.Combine(folder, $"pakchunkWwise-Windows{source}")
+                ],
                 _ => throw new NotImplementedException("Invalid kind of mod."),
             };
 
@@ -164,11 +167,13 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 KindOfMod.All => [
                     ("Characters", configuration?.Folders?.BackupResources?.Characters ?? string.Empty),
                     ("UI", configuration?.Folders?.BackupResources?.Ui ?? string.Empty),
-                    ("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty)
+                    ("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty),
+                    ("Audio", configuration?.Folders?.BackupResources?.Audio ?? string.Empty)
                     ],
                 KindOfMod.Characters => [("Characters", configuration?.Folders?.BackupResources?.Characters ?? string.Empty)],
                 KindOfMod.UI => [("UI", configuration?.Folders?.BackupResources?.Ui ?? string.Empty)],
                 KindOfMod.Movies => [("Movies", configuration?.Folders?.BackupResources?.Movies ?? string.Empty)],
+                KindOfMod.Audio => [("Audio", configuration?.Folders?.BackupResources?.Audio ?? string.Empty)],
                 _ => throw new NotImplementedException("Invalid kind of mod."),
             };
 
@@ -262,28 +267,18 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private string LookupOnBackup(BackupFolders backups, string file)
         {
-            var target = LookupOnFolder(KindOfMod.Characters);
-            if (!string.IsNullOrWhiteSpace(target))
-                return target;
-
-            target = LookupOnFolder(KindOfMod.UI);
-            if (!string.IsNullOrWhiteSpace(target))
-                return target;
-
-            target = LookupOnFolder(KindOfMod.Movies);
-            if (!string.IsNullOrWhiteSpace(target))
-                return target;
-
-            return string.Empty;
-
-            string LookupOnFolder(KindOfMod kind)
+            foreach (var kind in new KindOfMod[] { KindOfMod.Characters, KindOfMod.UI, KindOfMod.Movies, KindOfMod.Audio })
             {
                 var files = GetFiles(kind);
                 if (files is null || files.Count == 0)
-                    return string.Empty;
+                    continue;
 
-                return files.FirstOrDefault(x => x.EndsWith(file)) ?? string.Empty;
-            }
+                var target = files.FirstOrDefault(x => x.EndsWith(file)) ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(target))
+                    return target;
+            }   
+
+            return string.Empty;
 
             List<string> GetFiles(KindOfMod kind) 
             {
@@ -295,6 +290,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     KindOfMod.Characters => backups.Characters,
                     KindOfMod.UI => backups.Ui,
                     KindOfMod.Movies => backups.Movies,
+                    KindOfMod.Audio => backups.Audio,
                     _ => string.Empty,
                 };
 

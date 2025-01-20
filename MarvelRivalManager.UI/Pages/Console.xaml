@@ -23,6 +23,7 @@
                         <MenuFlyoutItem Text="Characters" Click="RestoreButton_Click" Tag="characters"/>
                         <MenuFlyoutItem Text="UI" Click="RestoreButton_Click" Tag="ui"/>
                         <MenuFlyoutItem Text="Movies" Click="RestoreButton_Click" Tag="movies"/>
+                        <MenuFlyoutItem Text="Audio" Click="RestoreButton_Click" Tag="audio"/>
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
@@ -33,6 +34,7 @@
                         <MenuFlyoutItem Text="Characters" Click="EnableButton_Click" Tag="characters"/>
                         <MenuFlyoutItem Text="UI" Click="EnableButton_Click" Tag="ui"/>
                         <MenuFlyoutItem Text="Movies" Click="EnableButton_Click" Tag="movies"/>
+                        <MenuFlyoutItem Text="Audio" Click="EnableButton_Click" Tag="audio"/>
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
@@ -43,6 +45,7 @@
                         <MenuFlyoutItem Text="Characters" Click="DisableButton_Click" Tag="characters"/>
                         <MenuFlyoutItem Text="UI" Click="DisableButton_Click" Tag="ui"/>
                         <MenuFlyoutItem Text="Movies" Click="DisableButton_Click" Tag="movies"/>
+                        <MenuFlyoutItem Text="Audio" Click="DisableButton_Click" Tag="audio"/>
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>

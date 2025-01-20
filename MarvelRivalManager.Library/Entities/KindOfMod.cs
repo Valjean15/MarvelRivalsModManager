@@ -8,6 +8,7 @@
         All = 1,
         Characters = 2,
         UI = 3,
-        Movies = 4
+        Movies = 4,
+        Audio = 5
     }
 }

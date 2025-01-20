@@ -61,6 +61,7 @@ namespace MarvelRivalManager.UI.Pages
                 "characters" => KindOfMod.Characters,
                 "movies" => KindOfMod.Movies,
                 "ui" => KindOfMod.UI,
+                "audio" => KindOfMod.Audio,
                 _ => KindOfMod.All,
             };
 
@@ -79,6 +80,7 @@ namespace MarvelRivalManager.UI.Pages
                 "characters" => KindOfMod.Characters,
                 "movies" => KindOfMod.Movies,
                 "ui" => KindOfMod.UI,
+                "audio" => KindOfMod.Audio,
                 _ => KindOfMod.All,
             };
 
@@ -95,6 +97,7 @@ namespace MarvelRivalManager.UI.Pages
                 "characters" => KindOfMod.Characters,
                 "movies" => KindOfMod.Movies,
                 "ui" => KindOfMod.UI,
+                "audio" => KindOfMod.Audio,
                 _ => KindOfMod.All,
             };
 

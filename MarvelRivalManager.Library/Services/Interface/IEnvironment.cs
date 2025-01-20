@@ -63,5 +63,10 @@
         ///     Game content backup for Movies
         /// </summary>
         public string Movies { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Game content backup for Audio
+        /// </summary>
+        public string Audio { get; set; } = string.Empty;
     }
 }

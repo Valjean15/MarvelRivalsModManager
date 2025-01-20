@@ -9,6 +9,7 @@ namespace MarvelRivalManager.Library.Entities
         public const string UI = "UI";
         public const string Movies = "movies";
         public const string Character = "character";
+        public const string Audio = "audio";
     }
 
     /// <summary>
@@ -126,6 +127,9 @@ namespace MarvelRivalManager.Library.Entities
 
                 if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
                     tags.Add(ModTags.Character);
+
+                if (file.ExtractionContent.DirectoryContainsSubfolder("WwiseAudio") || file.ExtractionContent.DirectoryContainsSubfolder("Wwise"))
+                    tags.Add(ModTags.Audio);
 
                 tags.AddRange(SystemTags);
                 SystemTags = tags.Distinct().ToArray();
