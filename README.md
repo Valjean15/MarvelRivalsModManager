@@ -23,6 +23,10 @@ Each category represent the following files of the original game:
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Download.png)
 
+After setting the files on each folder, it's needed to copy that files to the game content folder, that can be done with the *Restore* button, then *Enable* button to enable the copied/restores content (this only need to be once).
+
+After that you can configure the mods you wanna install, after managing the mods, just remain to click on the button *Unpack* (to unpack the mod enabled) and at last *Patch* to apply the mods unpacked.
+
 # Mod manager
 The mod manager is separated on three views, which are related between each other thought a layer of services.
 
