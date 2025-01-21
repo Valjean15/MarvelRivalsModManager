@@ -1,60 +1,98 @@
-Mod Manager based on WinUI3
-Compatible with .pak, .zip, .rar and .7z files
-Evaluate for each file if the mod can be applied based on file structure of the game
-Add, Edit Enable, Disable and Delete mods
-Patch mod files as raw format (Season 1 bypass)
 
-Restore original files (to reset all applied mods or by category)
-Disable or enable the mods by category
-How to use
-The app only has four pages
+# Marvel Rivals - Mod Manager
+Mod manager build up using **WinUI3**, which was made in mind as a tool to be compatible with the Season 0 (using ~mods folder) and Season 1 (using raw files on the game content folder)
 
-Settings
-On the settings page you can configure all the stuff is necesary to the app can work:
+## Important
+The manager do not provide the raw files that would be used to patch mod needed for the method of the Season 1, this files can be extracted from the yout own game content folder (`Paks` folder) and the copied to your content folder. Nevertheless the manager has a section that you can download a copy to later restore via manager.
 
-Content Folder: The folder where is located the game files, for example in steam is located on
-~/steamapp/common/Marvel Rivals/MarvelGame/Marvel/Content
+## How mods work on Marvel Rivals
+In Season 0, mods in .pak format only needed to be placed directly into the ~mods folder in order to be used.
 
-Mod directories - Enabled: The folder where you wanna store the mod you wanna use on the game, also can be use to store the mods like on the Season 0 on the ~mods folder.
+In Season 1, mods in order to be used must be unzipped (files in .pak format) and all mod files placed directly into the game's content folder.
 
-Mod directories - Disabled: The folder where where your mod you don't wanna use on the game.
+# Mod manager
+The mod manager is separated on three views, which are related between each other thought a layer of services.
 
-Unpacker - Executable folder: The folder where the unpacker file is located, this is the executable that the app would use to extract all .pak files to later apply on the game files. I recommend use repak.exe, I would attach it on this mod also.﻿
+## Settings
+Here you configure the directories necessary for the manager to work correctly. By default only the when the app is launched the first time (due it would create aa file `usersettings.json` to store the settings variables), it would create the folder **_MarvelRivalModManager_** on `C:\Users\Public\Documents\`. This default configuration can be change any time later.
 
-Backups: This folder represent an backup of the encrypted .pak file of the game, for each category is separated to make available restore or remove invalid files from the original game. This backup content you can get it via fmodel (this method require the encrypt key) or downloading a backup from the comunity (recoment discord server to get this)
+ - **Content Folder**
+Represent where the game content is located and where the mod would be deployed for the Season 1, the manager would try, on the first time is launched, to locate the Steam folder using the public registry values related to steam (`SOFTWARE\VALVE\` and `SOFTWARE\Wow6432Node\Valve\`) . For example, on Steam is located in `~/steamapp/common/Marvel Rivals/MarvelGame/Marvel/Content`.
 
-Characters: This one represent the file pakchunkCharacter-Windows.pak
-UI: This one represent the file pakchunkHQ-Windows.pak and pakchunkLQ-Windows.pak
+ - **Mod directories**
+Represents the directories used to manage the enabled and disabled states of mods. This was made on this way to maintain compatibility with the Season 0 mod management, and for later use when a proper mod bypass for Season 1 is made.
+	
+	There are two directories for this section *Enabled* and *Disabled* folder, were both are identical on structure. On the root of the folder the mods are stored, and a *profile* folder is created were each mod metadata is stored. Also if exists any image related for a mod, a folder *images* is created to store all the images related to the mod folder.
+	
+ - **Unpacker**
+Represent were the mods are unpacked and merged to later be patched on the game content folder, also it contains the unpacker program (`repak.exe`) which is used to unpack `.pak` files with no hash password.
 
-Movies: This one represent the file pakchunkMovies-Windows.pak
+ - **Backups**
+Represent were the backup of the encrypted `.pak` file of the game are stored for later use on restore options and to remove unused/disabled mods when are disabled for the method used for Season 1
+	
+	This folders are directly the files of the game, which are categorized to better control which files and mod types to apply. This files can be obtained via *Fmodel* or downloading a copy of this files. 
+	
+	 Each category represent the following files of the original game:
+    - *Characters*: `pakchunkCharacter-Windows.pak`
+    - *Movies*: `pakchunkHQ-Windows.pak` and  `pakchunkLQ-Windows.pak`
+    - *UI*: `pakchunkMovies-Windows.pak`
+    - *Audio*: `pakchunkWwise-Windows.pak`
 
+## Manager
+The manager separate the mods into two sections *Enabled* and *Disabled*, which each one represent a folder, described on the **Settings** section, and by default only *Enabled* mods would be patch into the game raw files.
 
-This folder must have the Content folder of the game structure, for example the Character folder, which is pakchunkCharacter-Windows.pak, only one folder which is  /Marvel/<all the content> Folder, that represents the same folder as the game content (the same as the Game Content) ~\steamapps\common\MarvelRivals\MarvelGame\Marvel\Content\Marvel\<all the content>
-﻿- Content    =>   ~\steamapps\common\MarvelRivals\MarvelGame\Marvel\Content
-        - Structure  =>   Marvel\<all the content>
-Actions
-On the action tab you have six options:
+ The manager has a command bar with two options: 
+ - Add: Open a dialog up to select a single o multiple mods, on formats (`.pak`, `.zip`, `.rar` and `.7z`). When a mod is added the mod would be decompressed to generate the metadata of the mod, in the case of the `.pak` files it would try to unpack it using the *unpacker* described on **Settings** section.
+ - Remove: Delete selected the mods from the lists and related content, metadata and images.
 
-Unpack: As said, unpack all the mod you enabled
+Next to the command bar, there is a search box, which you can filter mods of the list using the field *Name* and *Tags* (this include the system tags and custom tags). 
 
-Patch: As said, patch all the mods you unpacked earlier, also this one can detect if a mod was unpacked or applied before (by this app) and disable it to make a clean patch of the mods you wanna apply.
+To enable/disable a mod, you can select multiple mods and later just drag'n drop on the other list, each mod hace a context menu, which have the following options: 
+ - Move: Move the mod to the othe list (enabled/disabled).
+ - Edit: Open editor view where you can edit some metadata of the mod like the name, logo and custom tags for search on the bar.
+ - Delete: Delete selected the mod related content, metadata and images.
 
-Restore: Youn can restore the original files from the backup folders, to clean all the mods and restore the original state of the game.
+## Actions
+The actions view is more dedicated to apply the raw files of the mods (compressed or on `.pak ` format).
 
-Enable/Disable: With this one you can diasable all mods at once without restoring the content of the game, this only rename the backup files to ensure the game would load it and skip the mods.
+- **Unpack**
+Retrieve all the mods on the *Enabled* list, and try to unpack into raw files and merge all this content into a folder called `extraction`, located on the **Unpacker** folder, to later be patched on the game folder thought the *Patch* option.
 
-Clear: Clear the log from the screen.
-Mods
-On this screen you can manage all the mod you wanna apply on the compatible format, this one use the enable and disable directories configured, the app classified the mods automatically which you can filter via a textbox, also search by name or your own tags, also this show an image you upload for the mod.
+```mermaid
+graph LR
+mod((Mod)) -- Get file --> pak((PAK))
+mod((Mod)) -- Get file --> compressed((Compressed))
+pak((PAK)) --> unpacker((Unpacker))
+unpacker((Unpacker)) -- Missing paker.exe --> ignored
+unpacker((Unpacker)) -- Exist paker.exe --> validate
+compressed((Compressed)) -- Extract a --> raw((Raw files)) --> validate 
+compressed((Compressed)) -- Extract a --> pak
+validate[Validate structure] -- Valid --> target((Extracted folder))
+validate[Validate structure] -- Invalid --> ignored((Ignored))
+```
 
-- You can add mod via a button select and add multiple at once
-- You can enable/disable mod dragging between each list.
-- You can remove multiple mod selecting all (CTRL + A)  and click on delete.
-- You can right click to move the mod to (enable/disable) list
-- You can  right click to delete a mod you don't wanna have
-- You can right click to edit common properties to customize the search of your mods
-Mods - Detail
-On this screen you can manage the common properties to customize your mods for easy manage, like custom tags (separated by comma), custom image and custom name (different from the filename).
-Also this screen show you all the info related to the mod which the app is using to work like internal statuses, unpacked file list and filepaths.
+-  **Patch**
+Retrieve all the mods that are marked as *unpacked* and move all the unpacked content to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder. If there are any mod already deployed but inactive the manager would try to restore the files from the *Backups* folder, described on the **Settings** section, and remove any that do not exist.
+> If the manager report that a file cannot be restored and the previous mod is still applied, is recommended to restore the oriinal files using the *Restore* options, this probably is due the files added/modified of the mod. 
 
-If you wanna download the source code and compile it for yourselft or make a brach;
+- **Restore**
+	Replace all the files of the content folder using the *Backups* folder, described on the **Settings** section.
+	> You can select specific category to restore is needed 
+
+- **Enable/Disable**
+	This option only rename the files of the `Paks` folder of the game content folder, this is needed to enable/disable in general the mods, due the game would try to load the specific `.pak` file, if not exist would try to load the raw files on the game content folder.
+	
+	 Each category represent the following files of the original game:
+    - *Characters*: `pakchunkCharacter-Windows.pak`
+    - *Movies*: `pakchunkHQ-Windows.pak` and  `pakchunkLQ-Windows.pak`
+    - *UI*: `pakchunkMovies-Windows.pak`
+    - *Audio*: `pakchunkWwise-Windows.pak`
+ 
+	> You can select specific category to restore is needed 
+
+- **Download**
+	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe` and the backups
+	> The current backups uploaded are the Season 1 content
+
+- **Clear**
+	Only clear the logs of the console.
