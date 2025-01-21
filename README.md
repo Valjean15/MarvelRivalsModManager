@@ -16,6 +16,8 @@ The mod manager is separated on three views, which are related between each othe
 ## Settings
 Here you configure the directories necessary for the manager to work correctly. By default only the when the app is launched the first time (due it would create aa file `usersettings.json` to store the settings variables), it would create the folder **_MarvelRivalModManager_** on `C:\Users\Public\Documents\`. This default configuration can be change any time later.
 
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Settings.png)
+
  - **Content Folder**
 Represent where the game content is located and where the mod would be deployed for the Season 1, the manager would try, on the first time is launched, to locate the Steam folder using the public registry values related to steam (`SOFTWARE\VALVE\` and `SOFTWARE\Wow6432Node\Valve\`) . For example, on Steam is located in `~/steamapp/common/Marvel Rivals/MarvelGame/Marvel/Content`.
 
@@ -41,6 +43,8 @@ Represent were the backup of the encrypted `.pak` file of the game are stored fo
 ## Manager
 The manager separate the mods into two sections *Enabled* and *Disabled*, which each one represent a folder, described on the **Settings** section, and by default only *Enabled* mods would be patch into the game raw files.
 
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/ContextMenu.png)
+
  The manager has a command bar with two options: 
  - Add: Open a dialog up to select a single o multiple mods, on formats (`.pak`, `.zip`, `.rar` and `.7z`). When a mod is added the mod would be decompressed to generate the metadata of the mod, in the case of the `.pak` files it would try to unpack it using the *unpacker* described on **Settings** section.
  - Remove: Delete selected the mods from the lists and related content, metadata and images.
@@ -52,8 +56,12 @@ To enable/disable a mod, you can select multiple mods and later just drag'n drop
  - Edit: Open editor view where you can edit some metadata of the mod like the name, logo and custom tags for search on the bar.
  - Delete: Delete selected the mod related content, metadata and images.
 
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Details.png)
+
 ## Actions
 The actions view is more dedicated to apply the raw files of the mods (compressed or on `.pak ` format).
+
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Action.png)
 
 - **Unpack**
 Retrieve all the mods on the *Enabled* list, and try to unpack into raw files and merge all this content into a folder called `extraction`, located on the **Unpacker** folder, to later be patched on the game folder thought the *Patch* option.
@@ -71,9 +79,13 @@ validate[Validate structure] -- Valid --> target((Extracted folder))
 validate[Validate structure] -- Invalid --> ignored((Ignored))
 ```
 
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Unpack.png)
+
 -  **Patch**
 Retrieve all the mods that are marked as *unpacked* and move all the unpacked content to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder. If there are any mod already deployed but inactive the manager would try to restore the files from the *Backups* folder, described on the **Settings** section, and remove any that do not exist.
 > If the manager report that a file cannot be restored and the previous mod is still applied, is recommended to restore the oriinal files using the *Restore* options, this probably is due the files added/modified of the mod. 
+
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Patch.png)
 
 - **Restore**
 	Replace all the files of the content folder using the *Backups* folder, described on the **Settings** section.
@@ -93,6 +105,8 @@ Retrieve all the mods that are marked as *unpacked* and move all the unpacked co
 - **Download**
 	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe` and the backups
 	> The current backups uploaded are the Season 1 content
+
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Download.png)
 
 - **Clear**
 	Only clear the logs of the console.
