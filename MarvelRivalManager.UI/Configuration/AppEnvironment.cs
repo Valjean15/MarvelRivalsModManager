@@ -85,6 +85,11 @@ namespace MarvelRivalManager.UI.Configuration
             enabled.CreateDirectoryIfNotExist();
             unpacker.CreateDirectoryIfNotExist();
             download.CreateDirectoryIfNotExist();
+            backup.CreateDirectoryIfNotExist();
+            characters.CreateDirectoryIfNotExist();
+            ui.CreateDirectoryIfNotExist();
+            movies.CreateDirectoryIfNotExist();
+            audio.CreateDirectoryIfNotExist();
 
             // Create default user settings
             Folders = new Folders()
