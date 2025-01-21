@@ -6,9 +6,22 @@ Mod manager build up using **WinUI3**, which was made in mind as a tool to be co
 The manager do not provide the raw files that would be used to patch mod needed for the method of the Season 1, this files can be extracted from the yout own game content folder (`Paks` folder) and the copied to your content folder. Nevertheless the manager has a section that you can download a copy to later restore via manager.
 
 ## How mods work on Marvel Rivals
-In Season 0, mods in .pak format only needed to be placed directly into the ~mods folder in order to be used.
+In Season 0, mods in `.pak` format only needed to be placed directly into the ~mods folder in order to be used.
 
-In Season 1, mods in order to be used must be unzipped (files in .pak format) and all mod files placed directly into the game's content folder.
+In Season 1, mods in order to be used must be unzipped (files in `.pak` format) and all mod files placed directly into the game's content folder.
+
+## How to configure the manager
+For the Season 0, only it's needed to set the *Enabled* folder to the ~mods on the game content directory.
+
+For the Season 1, it's needed to download (can be using the manager or another source) or extract the `.pak` files from the game content, and then match each category folder with it's respective `.pak` file.
+
+Each category represent the following files of the original game:
+- *Characters*: `pakchunkCharacter-Windows.pak`
+- *Movies*: `pakchunkHQ-Windows.pak` and  `pakchunkLQ-Windows.pak`
+- *UI*: `pakchunkMovies-Windows.pak`
+- *Audio*: `pakchunkWwise-Windows.pak`
+
+![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Download.png)
 
 # Mod manager
 The mod manager is separated on three views, which are related between each other thought a layer of services.
