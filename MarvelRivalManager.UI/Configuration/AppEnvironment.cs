@@ -51,38 +51,7 @@ namespace MarvelRivalManager.UI.Configuration
             var stored = UserSettingsFile.DeserializeFileContent<AppEnvironment>();
 
             if (stored is null)
-            {
-                var disabled = Path.Combine(UserSettingsFolder, "disabled");
-                var enabled = Path.Combine(UserSettingsFolder, "enabled");
-                var unpacker = Path.Combine(UserSettingsFolder, "unpacker");
-                var download = Path.Combine(UserSettingsFolder, "download");
-
-                disabled.CreateDirectoryIfNotExist();
-                enabled.CreateDirectoryIfNotExist();
-                unpacker.CreateDirectoryIfNotExist();
-                download.CreateDirectoryIfNotExist();
-
-                // Create default user settings
-                Folders = new Folders()
-                {
-                    GameContent = SteamFolderLookup.GetGameFolderByRelativePath(Folders.GameContent),
-                    MegaFolder = Folders.MegaFolder,
-                    DownloadFolder = download,
-                    ModsDisabled = disabled,
-                    ModsEnabled = enabled,
-                    UnpackerExecutable = unpacker,
-
-                    // User defined values
-                    BackupResources = new BackupFolders()
-                    {
-                        Characters = string.Empty,
-                        Ui = string.Empty,
-                        Movies = string.Empty,
-                    }
-                };
-
-                Update(this);
-            }
+                LoadDefaultConfiguration();
 
             var values = UserSettingsFile.DeserializeFileContent<AppEnvironment>()!;
             Folders = values.Folders ?? new();
@@ -96,5 +65,48 @@ namespace MarvelRivalManager.UI.Configuration
         {
             UserSettingsFile.WriteFileContent(environment);
         }
+
+        #region Private Methods
+
+        private void LoadDefaultConfiguration()
+        {
+            var disabled = Path.Combine(UserSettingsFolder, "disabled");
+            var enabled = Path.Combine(UserSettingsFolder, "enabled");
+            var unpacker = Path.Combine(UserSettingsFolder, "unpacker");
+            var download = Path.Combine(UserSettingsFolder, "download");
+            var backup = Path.Combine(UserSettingsFolder, "backup");
+
+            var characters = Path.Combine(backup, "Characters");
+            var ui = Path.Combine(backup, "UI");
+            var movies = Path.Combine(backup, "Movies");
+            var audio = Path.Combine(backup, "Audio");
+
+            disabled.CreateDirectoryIfNotExist();
+            enabled.CreateDirectoryIfNotExist();
+            unpacker.CreateDirectoryIfNotExist();
+            download.CreateDirectoryIfNotExist();
+
+            // Create default user settings
+            Folders = new Folders()
+            {
+                GameContent = SteamFolderLookup.GetGameFolderByRelativePath(Folders.GameContent),
+                MegaFolder = Folders.MegaFolder,
+                DownloadFolder = download,
+                ModsDisabled = disabled,
+                ModsEnabled = enabled,
+                UnpackerExecutable = unpacker,
+                BackupResources = new BackupFolders()
+                {
+                    Characters = characters,
+                    Ui = ui,
+                    Movies = movies,
+                    Audio = audio
+                }
+            };
+
+            Update(this);
+        }
+
+        #endregion
     }
 }
