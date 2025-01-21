@@ -67,6 +67,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
+            informer("The resource has correct structure".AsLog(DOWNLOAD), false);
             return true;
         }
 
@@ -103,6 +104,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
+            informer("The unpacker was found".AsLog(DOWNLOAD), false);
             return true;
         }
 
