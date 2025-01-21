@@ -4,8 +4,8 @@ using MarvelRivalManager.Library.Services.Interface;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace MarvelRivalManager.UI.Pages
 {
@@ -23,7 +23,7 @@ namespace MarvelRivalManager.UI.Pages
         #endregion
 
         #region Fields
-        private readonly StringBuilder Logs = new();
+        private readonly List<string> Logs = [];
         #endregion
 
         public Console()
@@ -111,11 +111,24 @@ namespace MarvelRivalManager.UI.Pages
 
         private void Print(string message)
         {
-            Logs.AppendLine(message);
+            Print(message, false);
+        }
+
+        private void Print(string message, bool undoLast)
+        {
+            if (undoLast && Logs.Count > 0)
+            {
+                Logs[^1] = message;
+            }
+            else
+            {
+                Logs.Add(message);
+            }
+            
             try
             {
                 Ouput.IsReadOnly = false;
-                Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), Logs.ToString());
+                Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), string.Join(System.Environment.NewLine, Logs));
                 Ouput.IsReadOnly = true;
             }
             catch
