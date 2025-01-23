@@ -1,29 +1,20 @@
 
 # Marvel Rivals - Mod Manager
-Mod manager build up using **WinUI3**, which was made in mind as a tool to be compatible with the Season 0 (using ~mods folder) and Season 1 (using raw files on the game content folder)
-
-## Important
-The manager do not provide the raw files that would be used to patch mod needed for the method of the Season 1, this files can be extracted from the yout own game content folder (`Paks` folder) and the copied to your content folder. Nevertheless the manager has a section that you can download a copy to later restore via manager.
+Mod manager build up using **WinUI3**, which was made in mind as a tool to be compatible with the Season 0 (using ~mods folder) and Season 1 (patch) (using [Repak](https://github.com/trumank/repak) method)
 
 ## How mods work on Marvel Rivals
 In Season 0, mods in `.pak` format only needed to be placed directly into the ~mods folder in order to be used.
 
-In Season 1, mods in order to be used must be unzipped (files in `.pak` format) and all mod files placed directly into the game's content folder.
+In Season 1 - pre patch, mods in order to be used must be unzipped (files in `.pak` format) and all mod files placed directly into the game's content folder.
+
+In Season 1 - patch, mods in order to be used must be unzipped (files in `.pak` format) and all mod files packed on a single pak file to be later loaded.
 
 ## How to configure the manager
 For the Season 0, only it's needed to set the *Enabled* folder to the ~mods on the game content directory.
 
-For the Season 1, it's needed to download (can be using the manager or another source) or extract the `.pak` files from the game content, and then match each category folder with it's respective `.pak` file.
-
-Each category represent the following files of the original game:
-- *Characters*: `pakchunkCharacter-Windows.pak`
-- *Movies*: `pakchunkHQ-Windows.pak` and  `pakchunkLQ-Windows.pak`
-- *UI*: `pakchunkMovies-Windows.pak`
-- *Audio*: `pakchunkWwise-Windows.pak`
+For the Season 1 (patch), it's needed to download (can be using the manager or another source) the [Repak](https://github.com/trumank/repak).
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Download.png)
-
-After setting the files on each folder, it's needed to copy that files to the game content folder, that can be done with the *Restore* button, then *Enable* button to enable the copied/restores content (this only need to be once).
 
 After that you can configure the mods you wanna install, after managing the mods, just remain to click on the button *Unpack* (to unpack the mod enabled) and at last *Patch* to apply the mods unpacked.
 
@@ -31,7 +22,7 @@ After that you can configure the mods you wanna install, after managing the mods
 The mod manager is separated on three views, which are related between each other thought a layer of services.
 
 ## Settings
-Here you configure the directories necessary for the manager to work correctly. By default only the when the app is launched the first time (due it would create aa file `usersettings.json` to store the settings variables), it would create the folder **_MarvelRivalModManager_** on `C:\Users\Public\Documents\`. This default configuration can be change any time later.
+Here you configure the directories necessary for the manager to work correctly. By default only the when the app is launched the first time (due it would create aa file `usersettings_1.json` to store the settings variables), it would create the folder **_MarvelRivalModManager_** on `C:\Users\Public\Documents\`. This default configuration can be change any time later.
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Settings.png)
 
@@ -44,18 +35,7 @@ Represents the directories used to manage the enabled and disabled states of mod
 	There are two directories for this section *Enabled* and *Disabled* folder, were both are identical on structure. On the root of the folder the mods are stored, and a *profile* folder is created were each mod metadata is stored. Also if exists any image related for a mod, a folder *images* is created to store all the images related to the mod folder.
 	
  - **Unpacker**
-Represent were the mods are unpacked and merged to later be patched on the game content folder, also it contains the unpacker program (`repak.exe`) which is used to unpack `.pak` files with no hash password.
-
- - **Backups**
-Represent were the backup of the encrypted `.pak` file of the game are stored for later use on restore options and to remove unused/disabled mods when are disabled for the method used for Season 1
-	
-	This folders are directly the files of the game, which are categorized to better control which files and mod types to apply. This files can be obtained via *Fmodel* or downloading a copy of this files. 
-	
-	 Each category represent the following files of the original game:
-    - *Characters*: `pakchunkCharacter-Windows.pak`
-    - *Movies*: `pakchunkHQ-Windows.pak` and  `pakchunkLQ-Windows.pak`
-    - *UI*: `pakchunkMovies-Windows.pak`
-    - *Audio*: `pakchunkWwise-Windows.pak`
+Represent were the mods are unpacked and merged to later be patched on the game content folder, also it contains the unpacker program (`repak.exe`) which is used to unpack `.pak` files with no hash password, also is used to pack the raw files again to later be moved to the game content
 
 ## Manager
 The manager separate the mods into two sections *Enabled* and *Disabled*, which each one represent a folder, described on the **Settings** section, and by default only *Enabled* mods would be patch into the game raw files.
@@ -99,29 +79,15 @@ validate[Validate structure] -- Invalid --> ignored((Ignored))
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Unpack.png)
 
 -  **Patch**
-Retrieve all the mods that are marked as *unpacked* and move all the unpacked content to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder. If there are any mod already deployed but inactive the manager would try to restore the files from the *Backups* folder, described on the **Settings** section, and remove any that do not exist.
-> If the manager report that a file cannot be restored and the previous mod is still applied, is recommended to restore the oriinal files using the *Restore* options, this probably is due the files added/modified of the mod. 
+Retrieve all the mods that are marked as *unpacked*, pack all files into a single `.pak` file and move it to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder.
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Patch.png)
 
 - **Restore**
-	Replace all the files of the content folder using the *Backups* folder, described on the **Settings** section.
-	> You can select specific category to restore is needed 
-
-- **Enable/Disable**
-	This option only rename the files of the `Paks` folder of the game content folder, this is needed to enable/disable in general the mods, due the game would try to load the specific `.pak` file, if not exist would try to load the raw files on the game content folder.
-	
-	 Each category represent the following files of the original game:
-    - *Characters*: `pakchunkCharacter-Windows.pak`
-    - *Movies*: `pakchunkHQ-Windows.pak` and  `pakchunkLQ-Windows.pak`
-    - *UI*: `pakchunkMovies-Windows.pak`
-    - *Audio*: `pakchunkWwise-Windows.pak`
- 
-	> You can select specific category to restore is needed 
+	Tries to delete the generated `.pak` file on the content folder.
 
 - **Download**
-	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe` and the backups
-	> The current backups uploaded are the Season 1 content
+	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe`.
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Download.png)
 
