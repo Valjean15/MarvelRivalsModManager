@@ -5,7 +5,7 @@ namespace MarvelRivalManager.Library.Services.Interface
     /// <summary>
     ///     Service dedicated to unpack files
     /// </summary>
-    public interface IUnpacker
+    public interface IRepack
     {
         /// <summary>
         ///     Unpack the mods into the extraction folder
@@ -18,8 +18,13 @@ namespace MarvelRivalManager.Library.Services.Interface
         ValueTask Unpack(Mod[] mods, Action<string> informer);
 
         /// <summary>
-        ///     Get the extraction folder
+        ///     Get the folder of the unpacked mods
         /// </summary>
-        string GetExtractionFolder(Action<string>? informer = null);
+        string GetUnpackedFolder(Action<string>? informer = null);
+
+        /// <summary>
+        ///     Get the file (packed) of the unpacked mods
+        /// </summary>
+        ValueTask<string> Pack(Action<string> informer);
     }
 }

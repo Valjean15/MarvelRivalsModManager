@@ -1,7 +1,4 @@
-﻿using MarvelRivalManager.Library.Entities;
-using Microsoft.Extensions.Configuration;
-
-namespace MarvelRivalManager.Library.Services.Interface
+﻿namespace MarvelRivalManager.Library.Services.Interface
 {
     /// <summary>
     ///     Configuration of the application
@@ -40,11 +37,6 @@ namespace MarvelRivalManager.Library.Services.Interface
         public string DownloadFolder { get; set; } = string.Empty;
 
         /// <summary>
-        ///     Game content backup used to restore the original game content
-        /// </summary>
-        public BackupFolders BackupResources { get; set; } = new();
-
-        /// <summary>
         ///     Mods folder used to store the mods
         /// </summary>
         public string ModsEnabled { get; set; } = string.Empty;
@@ -55,61 +47,8 @@ namespace MarvelRivalManager.Library.Services.Interface
         public string ModsDisabled { get; set; } = string.Empty;
 
         /// <summary>
-        ///     Unpacker executable path
+        ///     Folder of the repak tool
         /// </summary>
-        public string UnpackerExecutable { get; set; } = string.Empty;
-    }
-
-    public class BackupFolders
-    {
-        /// <summary>
-        ///    Game content backup for Characters
-        /// </summary>
-        public string Characters { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Game content backup for UI
-        /// </summary>
-        public string Ui { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Game content backup for Movies
-        /// </summary>
-        public string Movies { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Game content backup for Audio
-        /// </summary>
-        public string Audio { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Get folder by kind of mod
-        /// </summary>
-        public string Get(KindOfMod kind)
-        {
-            return kind switch
-            {
-                KindOfMod.Characters => Characters,
-                KindOfMod.Audio => Audio,
-                KindOfMod.Movies => Movies,
-                KindOfMod.UI => Ui,
-                _ => string.Empty
-            };
-        }
-
-        /// <summary>
-        ///     Basic structure of the backup folders
-        /// </summary>
-        public static string[] BasicStructure(KindOfMod kind)
-        {
-            return kind switch
-            {
-                KindOfMod.Characters => ["Marvel", "Characters", "VFX"],
-                KindOfMod.UI => ["Marvel", "Marvel_LQ", "UI"],
-                KindOfMod.Movies => ["Marvel", "Movies", "Movies_HeroSkill", "Movies_Level"],
-                KindOfMod.Audio => ["Marvel", "WwiseAudio", "Wwise"],
-                _ => []
-            };
-        }
+        public string RepackFolder { get; set; } = string.Empty;
     }
 }

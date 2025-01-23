@@ -11,8 +11,8 @@ using System.IO.Compression;
 
 namespace MarvelRivalManager.Library.Services.Implementation
 {
-    /// <see cref="IUnpacker"/>
-    internal class Unpacker(IEnvironment configuration, IDirectoryCheker cheker) : IUnpacker
+    /// <see cref="IRepack"/>
+    internal class Repack(IEnvironment configuration, IDirectoryCheker cheker) : IRepack
     {
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
@@ -20,16 +20,18 @@ namespace MarvelRivalManager.Library.Services.Implementation
         #endregion
 
         #region Properties
-        public string ExtractionFolder { get; set; } = string.Empty;
+        private string Executable => $"{Configuration?.Folders?.RepackFolder}/repak.exe";
+        private string ExtractionFolder => $"{Configuration?.Folders?.RepackFolder}/extraction";
+        private string ExtractionFile => $"{ExtractionFolder}.pak";
         #endregion
 
-        /// <see cref="IUnpacker.CanBeUnPacked(Mod)"/>
+        /// <see cref="IRepack.CanBeUnPacked(Mod)"/>
         public async ValueTask<bool> CanBeUnPacked(Mod mod)
         {
             return ValidateConfiguration() && await UnpackInternal(mod);
         }
 
-        /// <see cref="IUnpacker.Unpack(Mod[], Action{string})"/>
+        /// <see cref="IRepack.Unpack(Mod[], Action{string})"/>
         public async ValueTask Unpack(Mod[] mods, Action<string> informer)
         {
             if (!ValidateConfiguration(informer))
@@ -76,7 +78,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 await mod.SetSystemInformation();
                 mod.Update();
 
-                await mod.File.ExtractionContent.MergeDirectoryAsync(ExtractionFolder);
+                await mod.File.Extraction.MergeDirectoryAsync(ExtractionFolder);
                 mod.File.Extraction.DeleteDirectoryIfExists();
             }
 
@@ -84,10 +86,41 @@ namespace MarvelRivalManager.Library.Services.Implementation
             informer($"Unpacking mods complete - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.UNPACK));
         }
 
-        /// <see cref="IUnpacker.GetExtractionFolder(Action{string}?)"/>
-        public string GetExtractionFolder(Action<string>? informer = null)
+        /// <see cref="IRepack.Pack(Action{string}?)"/>
+        public string GetUnpackedFolder(Action<string>? informer = null)
         {
             return !ValidateConfiguration(informer) || !Directory.Exists(ExtractionFolder) ? string.Empty : ExtractionFolder;
+        }
+
+        /// <see cref="IRepack.Unpack(Mod[], Action{string})"/>
+        public async ValueTask<string> Pack(Action<string> informer)
+        {
+            if (!ValidateConfiguration(informer))
+                return string.Empty;
+
+            if (!Directory.Exists(ExtractionFolder))
+            {
+                informer("Extraction folder do not exist, creating folder...".AsLog(LogConstants.PACK));
+                return string.Empty;
+            }
+
+            informer("Packing mods...".AsLog(LogConstants.PACK));
+            var time = Stopwatch.StartNew();
+
+            var file = await MakePakFile() ? ExtractionFile : string.Empty;
+
+            time.Stop();
+
+            if (File.Exists(file))
+            {
+                informer($"Packing mods complete - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.PACK));
+            }
+            else
+            {
+                informer("Error while packing the mods".AsLog(LogConstants.PACK));
+            }
+
+            return file;
         }
 
         #region Private Methods
@@ -97,7 +130,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private bool ValidateConfiguration(Action<string>? informer = null)
         {
-            if (string.IsNullOrEmpty(Configuration.Folders?.UnpackerExecutable))
+            if (string.IsNullOrEmpty(Configuration.Folders?.RepackFolder))
             {
                 if (informer is not null)
                     informer("The unpacker executable path is required.".AsLog(LogConstants.UNPACK));
@@ -105,11 +138,13 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
-            // Properties
-            ExtractionFolder = $"{Configuration.Folders.UnpackerExecutable}/extraction";
+            if (!Cheker.RepakToolExist())
+            {
+                if (informer is not null)
+                    informer("The unpacker executable do not exist on the unpacker folder.".AsLog(LogConstants.UNPACK));
 
-            if (!Cheker.UnpackerExist() && informer is not null)
-                informer("The unpacker executable do not exist on the unpacker folder.".AsLog(LogConstants.UNPACK));
+                return false;
+            }
 
             return true;
         }
@@ -188,6 +223,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     return false;
 
                 pakinfo.Extraction.MergeDirectory(file.Extraction);
+
+                // Clean
+                pakinfo.Extraction.DeleteDirectoryIfExists();
+                pakinfo.Filepath.DeleteFileIfExist();
             }
 
             return true;
@@ -198,14 +237,14 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> ExtractPakFile(FileInformation file)
         {
-            if (!Cheker.UnpackerExist())
+            if (!Cheker.RepakToolExist())
                 return false;
 
             try
             {
                 using var process = Process.Start(new ProcessStartInfo
                 {
-                    FileName = $"{Configuration.Folders.UnpackerExecutable}/repak.exe",
+                    FileName = Executable,
                     Arguments = $"unpack \"{file.Filepath}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true
@@ -216,6 +255,40 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
                 await process.WaitForExitAsync();
                 return Directory.Exists(file.ExtractionContent);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        ///     Make a pak file
+        /// </summary>
+        private async ValueTask<bool> MakePakFile()
+        {
+            if (!Cheker.RepakToolExist() || string.IsNullOrEmpty(ExtractionFolder))
+                return false;
+
+            try
+            {
+                ExtractionFile.DeleteFileIfExist();
+                const string AES_KEY = "0C263D8C22DCB085894899C3A3796383E9BF9DE0CBFB08C9BF2DEF2E84F29D74";
+                var argument = $"--aes-key {AES_KEY} pack \"{ExtractionFolder}\"";
+
+                using var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = Executable,
+                    Arguments = argument,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+
+                if (process is null)
+                    return false;
+
+                await process.WaitForExitAsync();
+                return File.Exists(ExtractionFile);
             }
             catch
             {

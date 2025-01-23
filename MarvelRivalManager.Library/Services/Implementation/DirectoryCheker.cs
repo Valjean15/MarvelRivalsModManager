@@ -1,5 +1,4 @@
-﻿using MarvelRivalManager.Library.Entities;
-using MarvelRivalManager.Library.Services.Interface;
+﻿using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 
 namespace MarvelRivalManager.Library.Services.Implementation
@@ -11,44 +10,17 @@ namespace MarvelRivalManager.Library.Services.Implementation
         private readonly IEnvironment Configuration = configuration;
         #endregion
 
-        /// <see cref="IDirectoryCheker.BackupResource(KindOfMod)"/>
-        public bool BackupResource(KindOfMod kind)
-        {
-            return kind switch
-            {
-                KindOfMod.All => new bool[] { 
-                    BackupResource(KindOfMod.Characters), 
-                    BackupResource(KindOfMod.UI), 
-                    BackupResource(KindOfMod.Movies), 
-                    BackupResource(KindOfMod.Audio) }
-                .All(x => x),
-                _ => BackupResource(Configuration.Folders.BackupResources.Get(kind), BackupFolders.BasicStructure(kind))
-            };
-        }
-
         /// <see cref="IDirectoryCheker.ModRawStructure(string)"/>
         public bool ModRawStructure(string folder)
         {
-            return !string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolders(["Marvel"]);
+            return !string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolder("Marvel/Content");
         }
 
-        /// <see cref="IDirectoryCheker.UnpackerExist"/>
-        public bool UnpackerExist()
+        /// <see cref="IDirectoryCheker.RepakToolExist"/>
+        public bool RepakToolExist()
         {
-            return Directory.Exists(Configuration.Folders.UnpackerExecutable)
-                && File.Exists(Path.Combine(Configuration.Folders.UnpackerExecutable, "repak.exe"));
+            return Directory.Exists(Configuration.Folders.RepackFolder)
+                && File.Exists(Path.Combine(Configuration.Folders.RepackFolder, "repak.exe"));
         }
-
-        #region Private method
-
-        /// <summary>
-        ///    Check if the folder contains the required subfolders
-        /// </summary>
-        public static bool BackupResource(string folder, string[] required)
-        {
-            return !string.IsNullOrEmpty(folder) && folder.DirectoryContainsSubfolders(required);
-        }
-
-        #endregion
     }
 }

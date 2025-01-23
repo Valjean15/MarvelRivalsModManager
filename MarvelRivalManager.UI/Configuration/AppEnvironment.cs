@@ -23,7 +23,7 @@ namespace MarvelRivalManager.UI.Configuration
         #region Constants
 
         private const string UserSettingsFolderName = "MarvelRivalModManager";
-        private const string UserSettingsFileName = "MarvelRivalModManager/usersettings.json";
+        private const string UserSettingsFileName = "MarvelRivalModManager/usersettings_1.json";
 
         #endregion
 
@@ -72,24 +72,13 @@ namespace MarvelRivalManager.UI.Configuration
         {
             var disabled = Path.Combine(UserSettingsFolder, "disabled");
             var enabled = Path.Combine(UserSettingsFolder, "enabled");
-            var unpacker = Path.Combine(UserSettingsFolder, "unpacker");
+            var repak = Path.Combine(UserSettingsFolder, "repak");
             var download = Path.Combine(UserSettingsFolder, "download");
-            var backup = Path.Combine(UserSettingsFolder, "backup");
-
-            var characters = Path.Combine(backup, "Characters");
-            var ui = Path.Combine(backup, "UI");
-            var movies = Path.Combine(backup, "Movies");
-            var audio = Path.Combine(backup, "Audio");
 
             disabled.CreateDirectoryIfNotExist();
             enabled.CreateDirectoryIfNotExist();
-            unpacker.CreateDirectoryIfNotExist();
+            repak.CreateDirectoryIfNotExist();
             download.CreateDirectoryIfNotExist();
-            backup.CreateDirectoryIfNotExist();
-            characters.CreateDirectoryIfNotExist();
-            ui.CreateDirectoryIfNotExist();
-            movies.CreateDirectoryIfNotExist();
-            audio.CreateDirectoryIfNotExist();
 
             // Create default user settings
             Folders = new Folders()
@@ -99,14 +88,7 @@ namespace MarvelRivalManager.UI.Configuration
                 DownloadFolder = download,
                 ModsDisabled = disabled,
                 ModsEnabled = enabled,
-                UnpackerExecutable = unpacker,
-                BackupResources = new BackupFolders()
-                {
-                    Characters = characters,
-                    Ui = ui,
-                    Movies = movies,
-                    Audio = audio
-                }
+                RepackFolder = repak
             };
 
             Update(this);

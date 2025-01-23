@@ -1,6 +1,4 @@
-﻿using MarvelRivalManager.Library.Entities;
-
-namespace MarvelRivalManager.Library.Services.Interface
+﻿namespace MarvelRivalManager.Library.Services.Interface
 {
     /// <summary>
     ///     Service dedicated to retrieve resources for the app
@@ -8,13 +6,13 @@ namespace MarvelRivalManager.Library.Services.Interface
     public interface IResourcesClient
     {
         /// <summary>
-        ///     Download a resource
-        /// </summary>
-        public ValueTask<bool> Download(KindOfMod kind, Action<string, bool> informer, CancellationToken? cancellationToken = null);
+         ///     Delete the resource for repacker
+         /// </summary>
+        public ValueTask<bool> Delete(Action<string, bool> informer);
 
         /// <summary>
-        ///     Download a resource for unpacker
+        ///     Download a resource for repacker
         /// </summary>
-        public ValueTask<bool> Unpacker(Action<string, bool> informer, CancellationToken? cancellationToken = null);
+        public ValueTask<bool> Download(Action<string, bool> informer, CancellationToken? cancellationToken = null);
     }
 }

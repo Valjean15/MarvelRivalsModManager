@@ -32,31 +32,11 @@
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Unpacker" FontSize="18"/>
+                <TextBlock Text="Repack" FontSize="18"/>
                 <component:FileInput 
                     Label="Executable folder" 
                     OnChange="Update"
-                    Value="{x:Bind m_environment.Folders.UnpackerExecutable, Mode=TwoWay}" />
-            </StackPanel>
-
-            <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Backups" FontSize="18"/>
-                <component:FileInput 
-                    Label="Characters" 
-                    OnChange="Update"
-                    Value="{x:Bind m_environment.Folders.BackupResources.Characters, Mode=TwoWay}" />
-                <component:FileInput 
-                    Label="UI" 
-                    OnChange="Update"
-                    Value="{x:Bind m_environment.Folders.BackupResources.Ui, Mode=TwoWay}" />
-                <component:FileInput 
-                    Label="Movies" 
-                    OnChange="Update"
-                    Value="{x:Bind m_environment.Folders.BackupResources.Movies, Mode=TwoWay}" />
-                <component:FileInput 
-                    Label="Audio" 
-                    OnChange="Update"
-                    Value="{x:Bind m_environment.Folders.BackupResources.Audio, Mode=TwoWay}" />
+                    Value="{x:Bind m_environment.Folders.RepackFolder, Mode=TwoWay}" />
             </StackPanel>
         </StackPanel>
     </ScrollView>

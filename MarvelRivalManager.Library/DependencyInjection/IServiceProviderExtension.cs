@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.Configuration
                 .AddSingleton<IDirectoryCheker, DirectoryCheker>()
                 .AddSingleton<IResourcesClient, ResourcesClient>()
                 .AddSingleton<IModManager, ModManager>()
-                .AddSingleton<IUnpacker, Unpacker>()
+                .AddSingleton<IRepack, Repack>()
                 .AddSingleton<IPatcher, Patcher>()
                 ;
 

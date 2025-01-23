@@ -1,4 +1,3 @@
-using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
 
 using Microsoft.UI.Xaml;
@@ -16,7 +15,7 @@ namespace MarvelRivalManager.UI.Pages
     {
         #region Dependencies
         private readonly IEnvironment m_environment = Services.Get<IEnvironment>();
-        private readonly IUnpacker m_unpacker = Services.Get<IUnpacker>();
+        private readonly IRepack m_unpacker = Services.Get<IRepack>();
         private readonly IPatcher m_patcher = Services.Get<IPatcher>();
         private readonly IModManager m_manager = Services.Get<IModManager>();
         private readonly IResourcesClient m_resources = Services.Get<IResourcesClient>();
@@ -38,67 +37,39 @@ namespace MarvelRivalManager.UI.Pages
             m_environment.Load();
         }
 
-        private async void UnpackButton_Click(object sender, RoutedEventArgs e)
+        private async void UnpackButton_Click(object _, RoutedEventArgs __)
         {
             IsLoading(true);
             await m_unpacker.Unpack(m_manager.All().Where(mod => mod.Metadata.Enabled).ToArray(), Print);
             IsLoading(false);
         }
 
-        private async void PatchButton_Click(object sender, RoutedEventArgs e)
+        private async void PatchButton_Click(object _, RoutedEventArgs __)
         {
             IsLoading(true);
             await m_patcher.Patch(Print);
             IsLoading(false);
         }
 
-        private async void RestoreButton_Click(object sender, RoutedEventArgs e)
+        private async void UnpatchButton_Click(object _, RoutedEventArgs __)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
-
             IsLoading(true);
-            await m_patcher.HardRestore(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), Print);
+            await m_patcher.Unpatch(Print);
             IsLoading(false);
         }
 
-        private void EnableButton_Click(object sender, RoutedEventArgs e)
+        private async void DownloadButton_Click(object _, RoutedEventArgs __)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
-
-            m_patcher.Toggle(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), true, Print);
+            await m_resources.Download(Print);
         }
 
-        private void DisableButton_Click(object sender, RoutedEventArgs e)
+        private async void DeleteDownloadButton_Click(object _, RoutedEventArgs __)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
-
-            m_patcher.Toggle(GetKindFromTag(item.Tag?.ToString() ?? string.Empty), false, Print);
+            await m_resources.Delete(Print);
         }
 
-        private async void DownloadButton_Click(object sender, RoutedEventArgs e)
+        private void ClearButton_Click(object _, RoutedEventArgs __)
         {
-            if (sender is not MenuFlyoutItem item)
-                return;
-
-            var tag = item.Tag?.ToString() ?? string.Empty;
-            if (tag.Equals("unpacker"))
-            {
-                await m_resources.Unpacker(Print);
-            } 
-            else
-            {
-                await m_resources.Download(GetKindFromTag(tag), Print);
-            }
-        }
-
-        private void ClearButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button)
-                return;
-
             Ouput.IsReadOnly = false;
             Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), string.Empty);
             Ouput.IsReadOnly = true;
@@ -141,18 +112,6 @@ namespace MarvelRivalManager.UI.Pages
         {
             IsInProgress.IsIndeterminate = loading;
             IsInProgress.Value = loading ? 0 : 100;
-        }
-
-        private KindOfMod GetKindFromTag(string tag)
-        {
-            return tag switch
-            {
-                "characters" => KindOfMod.Characters,
-                "movies" => KindOfMod.Movies,
-                "ui" => KindOfMod.UI,
-                "audio" => KindOfMod.Audio,
-                _ => KindOfMod.All,
-            };
         }
 
         #endregion

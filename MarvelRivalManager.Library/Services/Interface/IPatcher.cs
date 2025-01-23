@@ -1,6 +1,4 @@
-﻿using MarvelRivalManager.Library.Entities;
-
-namespace MarvelRivalManager.Library.Services.Interface
+﻿namespace MarvelRivalManager.Library.Services.Interface
 {
     /// <summary>
     ///    Service related to patching files of the game
@@ -8,23 +6,13 @@ namespace MarvelRivalManager.Library.Services.Interface
     public interface IPatcher
     {
         /// <summary>
-        ///     Restore the original files of the game
-        /// </summary>
-        ValueTask<bool> Restore(KindOfMod kind, Action<string> informer);
-
-        /// <summary>
-        ///     Restore the original files of the game
-        /// </summary>
-        ValueTask<bool> HardRestore(KindOfMod kind, Action<string> informer);
-
-        /// <summary>
         ///    Patch the game with the mod content provided
         /// </summary>
         ValueTask<bool> Patch(Action<string> informer);
 
         /// <summary>
-        ///     Enable/Disable the mods
+        ///    Unpatch the game with the mod content provided
         /// </summary>
-        bool Toggle(KindOfMod kind, bool enable, Action<string> informer);
+        ValueTask<bool> Unpatch(Action<string> informer);
     }
 }

@@ -5,11 +5,11 @@ using MarvelRivalManager.Library.Util;
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IModManager"/>
-    internal class ModManager(IEnvironment configuration, IUnpacker unpacker) : IModManager
+    internal class ModManager(IEnvironment configuration, IRepack unpacker) : IModManager
     {
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
-        private readonly IUnpacker Unpacker = unpacker;
+        private readonly IRepack Unpacker = unpacker;
         #endregion
 
         /// <see cref="IModManager.All"/>

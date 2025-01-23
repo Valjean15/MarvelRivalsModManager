@@ -14,56 +14,11 @@
         <CommandBar IsOpen="False" DefaultLabelPosition="Right" IsSticky="True" HorizontalAlignment="Left">
             <AppBarButton Icon="Orientation" Label="Unpack" Click="UnpackButton_Click" />
             <AppBarButton Icon="SaveLocal" Label="Patch" Click="PatchButton_Click" />
+            <AppBarButton Icon="Refresh" Label="Unpatch" Click="UnpatchButton_Click" />
             <AppBarSeparator />
 
-            <AppBarButton Icon="Refresh" Label="Restore">
-                <AppBarButton.Flyout>
-                    <MenuFlyout>
-                        <MenuFlyoutItem Text="All" Click="RestoreButton_Click" Tag="all"/>
-                        <MenuFlyoutItem Text="Characters" Click="RestoreButton_Click" Tag="characters"/>
-                        <MenuFlyoutItem Text="UI" Click="RestoreButton_Click" Tag="ui"/>
-                        <MenuFlyoutItem Text="Movies" Click="RestoreButton_Click" Tag="movies"/>
-                        <MenuFlyoutItem Text="Audio" Click="RestoreButton_Click" Tag="audio"/>
-                    </MenuFlyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarButton Icon="Accept" Label="Enable">
-                <AppBarButton.Flyout>
-                    <MenuFlyout>
-                        <MenuFlyoutItem Text="All" Click="EnableButton_Click" Tag="all"/>
-                        <MenuFlyoutItem Text="Characters" Click="EnableButton_Click" Tag="characters"/>
-                        <MenuFlyoutItem Text="UI" Click="EnableButton_Click" Tag="ui"/>
-                        <MenuFlyoutItem Text="Movies" Click="EnableButton_Click" Tag="movies"/>
-                        <MenuFlyoutItem Text="Audio" Click="EnableButton_Click" Tag="audio"/>
-                    </MenuFlyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarButton Icon="Redo" Label="Disable">
-                <AppBarButton.Flyout>
-                    <MenuFlyout>
-                        <MenuFlyoutItem Text="All" Click="DisableButton_Click" Tag="all"/>
-                        <MenuFlyoutItem Text="Characters" Click="DisableButton_Click" Tag="characters"/>
-                        <MenuFlyoutItem Text="UI" Click="DisableButton_Click" Tag="ui"/>
-                        <MenuFlyoutItem Text="Movies" Click="DisableButton_Click" Tag="movies"/>
-                        <MenuFlyoutItem Text="Audio" Click="DisableButton_Click" Tag="audio"/>
-                    </MenuFlyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarSeparator />
-
-            <AppBarButton Icon="Library" Label="Download">
-                <AppBarButton.Flyout>
-                    <MenuFlyout>
-                        <MenuFlyoutItem Text="Unpacker" Click="DownloadButton_Click" Tag="unpacker"/>
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem Text="All" Click="DownloadButton_Click" Tag="all"/>
-                        <MenuFlyoutItem Text="Characters" Click="DownloadButton_Click" Tag="characters"/>
-                        <MenuFlyoutItem Text="UI" Click="DownloadButton_Click" Tag="ui"/>
-                        <MenuFlyoutItem Text="Movies" Click="DownloadButton_Click" Tag="movies"/>
-                        <MenuFlyoutItem Text="Audio" Click="DownloadButton_Click" Tag="audio"/>
-                    </MenuFlyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
+            <AppBarButton Icon="Library" Label="Download" Click="DownloadButton_Click" />
+            <AppBarButton Icon="Delete" Label="Delete" Click="DeleteDownloadButton_Click" />
             <AppBarSeparator />
             
             <AppBarButton Icon="Clear" Label="Clear" Click="ClearButton_Click" />
