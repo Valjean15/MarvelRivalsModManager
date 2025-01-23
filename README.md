@@ -81,13 +81,14 @@ validate[Validate structure] -- Invalid --> ignored((Ignored))
 -  **Patch**
 Retrieve all the mods that are marked as *unpacked*, pack all files into a single `.pak` file and move it to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder.
 
-![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Patch.png)
-
-- **Restore**
+- **Unpatch**
 	Tries to delete the generated `.pak` file on the content folder.
 
 - **Download**
 	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe`.
+
+- **Delete**
+	Tries to delete the downloaded resources.
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Download.png)
 
