@@ -14,6 +14,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
     /// <see cref="IRepack"/>
     internal class Repack(IEnvironment configuration, IDirectoryCheker cheker) : IRepack
     {
+        private const string AES_KEY = "0C263D8C22DCB085894899C3A3796383E9BF9DE0CBFB08C9BF2DEF2E84F29D74";
+
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
         private readonly IDirectoryCheker Cheker = cheker;
@@ -245,7 +247,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 using var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = Executable,
-                    Arguments = $"unpack \"{file.Filepath}\"",
+                    Arguments = $"--aes-key {AES_KEY} unpack \"{file.Filepath}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true
                 });
@@ -273,13 +275,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
             try
             {
                 ExtractionFile.DeleteFileIfExist();
-                const string AES_KEY = "0C263D8C22DCB085894899C3A3796383E9BF9DE0CBFB08C9BF2DEF2E84F29D74";
-                var argument = $"--aes-key {AES_KEY} pack \"{ExtractionFolder}\"";
-
                 using var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = Executable,
-                    Arguments = argument,
+                    Arguments = $"--aes-key {AES_KEY} pack \"{ExtractionFolder}\"",
                     UseShellExecute = false,
                     CreateNoWindow = true
                 });

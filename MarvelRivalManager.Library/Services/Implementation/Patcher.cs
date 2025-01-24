@@ -40,12 +40,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
-            var wasMoved = await Task.Run(() => packed.MakeSafeMove(PATCH_FILE));
-            if (string.IsNullOrEmpty(wasMoved))
-            {
-                informer("The packed content could not be moved. Skipping patch.".AsLog(LogConstants.PATCH));
-                return false;
-            }
+            await Task.Run(() => File.Move(packed, PATCH_FILE, true));
+            packed.DeleteFileIfExist();
 
             foreach (var mod in all.Where(mod => mod.Metadata.Unpacked && mod.Metadata.Enabled))
             {
