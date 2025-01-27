@@ -14,6 +14,14 @@ namespace MarvelRivalManager.UI.Configuration
     /// </summary>
     public interface IAppEnvironment : IEnv
     {
+        /// <summary>
+        ///     Refers to the version of the configuration
+        /// </summary>
+        public string Version { get; set; }
+
+        /// <summary>
+        ///     Write on the user settings the new values
+        /// </summary>
         public void Update(IEnv environment);
     }
 
@@ -41,10 +49,11 @@ namespace MarvelRivalManager.UI.Configuration
 
         #endregion
 
-        /// <summary>
-        ///     Read the user settings from were saved
-        /// </summary>
-        public override IAppEnvironment Load()
+        /// <see cref="IAppEnvironment.Version"/>
+        public string Version { get; set; } = "1.1.0";
+
+        /// <see cref="IEnv.Refresh"/>
+        public override IAppEnvironment Refresh()
         {
             // Read data from the user settings
             UserSettingsFolder.CreateDirectoryIfNotExist();
@@ -54,13 +63,14 @@ namespace MarvelRivalManager.UI.Configuration
                 LoadDefaultConfiguration();
 
             var values = UserSettingsFile.DeserializeFileContent<AppEnvironment>()!;
+            
             Folders = values.Folders ?? new();
+            Options = values.Options ?? new();
+
             return values;
         }
 
-        /// <summary>
-        ///     Write on the user settings the new values
-        /// </summary>
+        /// <see cref="IAppEnvironment.Update(IEnv)"/>
         public void Update(IEnv environment)
         {
             UserSettingsFile.WriteFileContent(environment);
@@ -68,6 +78,9 @@ namespace MarvelRivalManager.UI.Configuration
 
         #region Private Methods
 
+        /// <summary>
+        ///     Load the default configuration and save it
+        /// </summary>
         private void LoadDefaultConfiguration()
         {
             var disabled = Path.Combine(UserSettingsFolder, "disabled");
@@ -90,6 +103,8 @@ namespace MarvelRivalManager.UI.Configuration
                 ModsEnabled = enabled,
                 RepackFolder = repak
             };
+
+            Options = new Options();
 
             Update(this);
         }

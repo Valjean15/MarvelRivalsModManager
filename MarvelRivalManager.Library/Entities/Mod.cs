@@ -5,12 +5,77 @@ namespace MarvelRivalManager.Library.Entities
 {
     public class ModTags
     {
-        public const string PakFile = "pak";
-        public const string CompressedFile = "compressed";
-        public const string UI = "UI";
-        public const string Movies = "movies";
-        public const string Character = "character";
-        public const string Audio = "audio";
+        #region Tags
+
+        public static readonly Dictionary<string, string> Formats = new()
+        {
+            { ".pak", "pak" },
+            { ".rar", "rar" },
+            { ".7z", "7z" },
+            { ".zip", "zip" }
+        };
+
+        public static readonly Dictionary<string, string> Categories = new()
+        {
+            { "UI", "UI" },
+            { "Movies", "movies" },
+            { "Characters", "character" },
+            { "Wwise", "audio" }
+        };
+
+        public static readonly Dictionary<string, string> SubCategories = new()
+        {
+            { "Meshes", "model" },
+            { "Weapons", "weapons" },
+            { "Textures", "textures" }
+        };
+
+        #endregion
+
+        public static string[] GetCategoryTag(FileInformation file)
+        {
+            if (!Directory.Exists(file.ExtractionContent))
+                return [];
+
+            var tags = new List<string>();
+            if (file.ExtractionContent.DirectoryContainsSubfolder("UI"))
+                tags.Add(Categories["UI"]);
+
+            if (file.ExtractionContent.DirectoryContainsSubfolder("Movies"))
+                tags.Add(Categories["Movies"]);
+
+            if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
+                tags.Add(Categories["Characters"]);
+
+            if (file.ExtractionContent.DirectoryContainsSubfolder("WwiseAudio") || file.ExtractionContent.DirectoryContainsSubfolder("Wwise"))
+                tags.Add(Categories["Wwise"]);
+
+            return [.. tags];
+        }
+
+        public static string[] GetFormatTag(FileInformation file)
+        {
+            return Formats.TryGetValue(file.Extension, out var format) ? [format] : [];
+        }
+
+        public static string[] GetSubCategoryTag(FileInformation file)
+        {
+            if (!Directory.Exists(file.ExtractionContent))
+                return [];
+
+            var tags = new List<string>();
+
+            if (file.ExtractionContent.DirectoryContainsSubfolder("Meshes"))
+                tags.Add(SubCategories["Meshes"]);
+
+            if (file.ExtractionContent.DirectoryContainsSubfolder("Weapons"))
+                tags.Add(SubCategories["Weapons"]);
+
+            if (file.ExtractionContent.DirectoryContainsSubfolder("Textures"))
+                tags.Add(SubCategories["Textures"]);
+
+            return [.. tags];
+        }
     }
 
     /// <summary>
@@ -18,6 +83,12 @@ namespace MarvelRivalManager.Library.Entities
     /// </summary>
     public class Mod
     {
+        public Mod()
+        {
+            Metadata = new Metadata();
+            File = new FileInformation(string.Empty);
+        }
+
         public Mod(string filepath)
         {
             File = new FileInformation(filepath);
@@ -148,27 +219,12 @@ namespace MarvelRivalManager.Library.Entities
         {
             var tagTask = Task.Run(() =>
             {
-                var tags = new List<string>
-                {
-                    file.Extension.Equals(".pak") ? ModTags.PakFile : ModTags.CompressedFile
-                };
+                var tags = new List<string>();
 
-                if (Directory.Exists(file.ExtractionContent))
-                {
-                    if (file.ExtractionContent.DirectoryContainsSubfolder("UI"))
-                        tags.Add(ModTags.UI);
+                tags.AddRange(ModTags.GetFormatTag(file));
+                tags.AddRange(ModTags.GetCategoryTag(file));
+                tags.AddRange(ModTags.GetSubCategoryTag(file));
 
-                    if (file.ExtractionContent.DirectoryContainsSubfolder("Movies"))
-                        tags.Add(ModTags.Movies);
-
-                    if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
-                        tags.Add(ModTags.Character);
-
-                    if (file.ExtractionContent.DirectoryContainsSubfolder("WwiseAudio") || file.ExtractionContent.DirectoryContainsSubfolder("Wwise"))
-                        tags.Add(ModTags.Audio);
-                }
-
-                tags.AddRange(SystemTags);
                 SystemTags = tags.Distinct().ToArray();
             });
 

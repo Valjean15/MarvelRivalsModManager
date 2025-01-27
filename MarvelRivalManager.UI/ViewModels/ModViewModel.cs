@@ -18,8 +18,9 @@ namespace MarvelRivalManager.UI.ViewModels
         #region Read
         public string SystemTags => string.Join(", ", Metadata.SystemTags);
 
-        public string Files { 
-            get 
+        public string Files
+        {
+            get
             {
                 var builder = new StringBuilder();
                 foreach (var file in Metadata.FilePaths)
@@ -28,15 +29,27 @@ namespace MarvelRivalManager.UI.ViewModels
                 }
 
                 return builder.ToString();
-            } 
+            }
         }
 
         #endregion
     }
 
-    public class ModViewModel(int index, string filepath) : Mod(filepath)
+    public class ModViewModel : Mod
     {
-        public int Index { get; set; } = index;
+        public ModViewModel(Mod mod)
+        {
+            Index = 0;
+            File = mod.File;
+            Metadata = mod.Metadata;
+        }
+
+        public ModViewModel(int index, string filepath) : base(filepath)
+        {
+            Index = index;
+        }
+
+        public int Index { get; set; }
 
         #region View properties
         public string Name
@@ -52,12 +65,16 @@ namespace MarvelRivalManager.UI.ViewModels
                 return "Unknown";
             }
         }
+        public string[] AllTags => Metadata.Tags
+            .Concat(Metadata.SystemTags)
+            .Distinct()
+            .Where(tag => !string.IsNullOrEmpty(tag))
+            .ToArray();
         public string Tags
         {
             get
             {
-                var value = string.Join(", ", Metadata.Tags.Concat(Metadata.SystemTags)
-                    .Where(tag => !string.IsNullOrWhiteSpace(tag)));
+                var value = string.Join(", ", AllTags.Where(tag => !string.IsNullOrWhiteSpace(tag)));
                 return string.IsNullOrEmpty(value) ? "[No tags]" : value;
             }
         }
@@ -77,6 +94,15 @@ namespace MarvelRivalManager.UI.ViewModels
         public bool NoHasLogo => string.IsNullOrEmpty(Metadata.Logo);
         public bool HasLogo => !string.IsNullOrEmpty(Metadata.Logo);
         #endregion
+
+        public ModViewModel Clone()
+        {
+            return new ModViewModel(new Mod
+            {
+                Metadata = Metadata,
+                File = File
+            });
+        }
     }
 
     public partial class ModCollection : ObservableCollection<ModViewModel>

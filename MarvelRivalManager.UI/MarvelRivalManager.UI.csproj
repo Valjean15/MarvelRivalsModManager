@@ -28,7 +28,6 @@
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
 
@@ -102,7 +101,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Title>Marvel Rivals - Mod Manager</Title>
     <Authors>Jean Lanza</Authors>
-    <PackageIcon>icon.jpg</PackageIcon>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageTags>Mod manager</PackageTags>
+    <PackageCertificateThumbprint>010BC391E497B1AB338CB3F428FDF07D8360EDB0</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
 </Project>

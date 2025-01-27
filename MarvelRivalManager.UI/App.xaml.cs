@@ -68,7 +68,7 @@ namespace MarvelRivalManager.UI
             // Default size of the window
             if (m_window is not null)
             {
-                m_window.AppWindow.Resize(new Windows.Graphics.SizeInt32(1200, 800));
+                m_window.AppWindow.Resize(new Windows.Graphics.SizeInt32(1000, _Height: 800));
                 m_window.ExtendsContentIntoTitleBar = true;
 
                 WindowHelper.TrackWindow(m_window);

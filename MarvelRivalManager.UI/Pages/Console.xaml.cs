@@ -2,9 +2,9 @@ using MarvelRivalManager.Library.Services.Interface;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MarvelRivalManager.UI.Pages
 {
@@ -22,7 +22,8 @@ namespace MarvelRivalManager.UI.Pages
         #endregion
 
         #region Fields
-        private readonly List<string> Logs = [];
+        private readonly ConcurrentStack<string> Logs = [];
+        private readonly Lock _lock = new();
         #endregion
 
         public Console()
@@ -34,20 +35,14 @@ namespace MarvelRivalManager.UI.Pages
 
         private void Page_Loaded(object _, RoutedEventArgs __)
         {
-            m_environment.Load();
-        }
-
-        private async void UnpackButton_Click(object _, RoutedEventArgs __)
-        {
-            IsLoading(true);
-            await m_unpacker.Unpack(m_manager.All().Where(mod => mod.Metadata.Enabled).ToArray(), Print);
-            IsLoading(false);
+            m_environment.Refresh();
         }
 
         private async void PatchButton_Click(object _, RoutedEventArgs __)
         {
             IsLoading(true);
-            await m_patcher.Patch(Print);
+            if (await m_unpacker.Unpack(Print))
+                await m_patcher.Patch(Print);
             IsLoading(false);
         }
 
@@ -60,12 +55,16 @@ namespace MarvelRivalManager.UI.Pages
 
         private async void DownloadButton_Click(object _, RoutedEventArgs __)
         {
+            IsLoading(true);
             await m_resources.Download(Print);
+            IsLoading(false);
         }
 
         private async void DeleteDownloadButton_Click(object _, RoutedEventArgs __)
         {
+            IsLoading(true);
             await m_resources.Delete(Print);
+            IsLoading(false);
         }
 
         private void ClearButton_Click(object _, RoutedEventArgs __)
@@ -80,32 +79,37 @@ namespace MarvelRivalManager.UI.Pages
 
         #region Private Methods
 
-        private void Print(string message)
+        private async ValueTask Print(string message)
         {
-            Print(message, false);
+            await Print(message, false);
         }
 
-        private void Print(string message, bool undoLast)
+        private async ValueTask Print(string message, bool undoLast)
         {
-            if (undoLast && Logs.Count > 0)
+            lock (_lock)
             {
-                Logs[^1] = message;
-            }
-            else
-            {
-                Logs.Add(message);
-            }
-            
-            try
-            {
-                Ouput.IsReadOnly = false;
-                Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), string.Join(System.Environment.NewLine, Logs));
-                Ouput.IsReadOnly = true;
-            }
-            catch
-            {
+                if (undoLast && !Logs.IsEmpty)
+                    Logs.TryPop(out _);
 
+                Logs.Push(message);
             }
+
+            await Task.Run(() =>
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        Ouput.IsReadOnly = false;
+                        Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), string.Join(System.Environment.NewLine, Logs));
+                        Ouput.IsReadOnly = true;
+                    }
+                    catch
+                    {
+                        // Left blank intentionally
+                    }
+                });
+            });
         }
 
         private void IsLoading(bool loading)

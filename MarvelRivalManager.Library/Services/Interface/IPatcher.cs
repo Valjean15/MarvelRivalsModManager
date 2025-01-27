@@ -1,4 +1,6 @@
-﻿namespace MarvelRivalManager.Library.Services.Interface
+﻿using static MarvelRivalManager.Library.Entities.Delegates;
+
+namespace MarvelRivalManager.Library.Services.Interface
 {
     /// <summary>
     ///    Service related to patching files of the game
@@ -8,11 +10,11 @@
         /// <summary>
         ///    Patch the game with the mod content provided
         /// </summary>
-        ValueTask<bool> Patch(Action<string> informer);
+        ValueTask<bool> Patch(Print informer);
 
         /// <summary>
         ///    Unpatch the game with the mod content provided
         /// </summary>
-        ValueTask<bool> Unpatch(Action<string> informer);
+        ValueTask<bool> Unpatch(Print informer);
     }
 }

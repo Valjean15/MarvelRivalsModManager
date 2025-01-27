@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,7 @@ namespace MarvelRivalManager.UI.Pages
 
         private readonly IEnvironment m_environment = Services.Get<IEnvironment>();
         private readonly IModManager m_manager = Services.Get<IModManager>();
+        private readonly IModDataAccess m_query = Services.Get<IModDataAccess>();
 
         #endregion
 
@@ -36,6 +38,7 @@ namespace MarvelRivalManager.UI.Pages
         public ModViewModel? Selected = null;
         private ModCollection Enabled { get; set; } = [];
         private ModCollection Disabled { get; set; } = [];
+        private TagViewModel[] Tags { get; set; } = [];
         #endregion
 
         public ModManager()
@@ -49,11 +52,13 @@ namespace MarvelRivalManager.UI.Pages
         /// <summary>
         ///     Event when the page is loaded first time
         /// </summary>
-        private void Page_Loaded(object _, RoutedEventArgs __)
+        private async void Page_Loaded(object _, RoutedEventArgs __)
         {
-            m_environment.Load();
+            IsLoading(true);
 
-            var mods = m_manager.AllAsFilepaths()
+            m_environment.Refresh();
+
+            var mods = (await m_query.AllFilepaths(true))
                 .Select((filepath, index) => new ModViewModel(index + 1, filepath))
                 .OrderBy(mod => mod.Metadata.Order)
                 .ThenBy(mod => mod.Metadata.Name)
@@ -61,13 +66,26 @@ namespace MarvelRivalManager.UI.Pages
 
             Enabled = new ModCollection(mods.Where(x => x.Metadata.Enabled));
             Disabled = new ModCollection(mods.Where(x => !x.Metadata.Enabled));
+
+            IsLoading(false);
             Refresh();
+
+            if (Selected is null)
+                RefreshTags();
         }
 
         /// <summary>
         ///     Event that filter the mods lists
         /// </summary>
         private void OnFilterChanged(object _, TextChangedEventArgs __)
+        {
+            Refresh();
+        }
+
+        /// <summary>
+        ///     Event that filter the mods lists
+        /// </summary>
+        private void FilterTags_SelectionChanged(ItemsView _, ItemsViewSelectionChangedEventArgs __)
         {
             Refresh();
         }
@@ -122,8 +140,10 @@ namespace MarvelRivalManager.UI.Pages
             picker.ViewMode = PickerViewMode.List;
             picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 
-            foreach (var pattern in m_manager.SupportedExtentensions())
+            foreach (var pattern in m_query.SupportedExtentensions())
                 picker.FileTypeFilter.Add(pattern);
+
+            IsLoading(true);
 
             foreach (var file in (await picker.PickMultipleFilesAsync()) ?? [])
             {
@@ -132,7 +152,10 @@ namespace MarvelRivalManager.UI.Pages
                 collection.Add(new ModViewModel(collection.Count + 1, mod.File.Filepath));
             }
 
+            IsLoading(false);
+
             Refresh();
+            RefreshTags();
             button.IsEnabled = true;
         }
 
@@ -149,12 +172,16 @@ namespace MarvelRivalManager.UI.Pages
             var source = mod.Metadata.Enabled ? Enabled : Disabled;
             var target = mod.Metadata.Enabled ? Disabled : Enabled;
 
+            IsLoading(true);
+
             var (edited, success) = await Move(mod, target.Count + 1);
             if (success)
             {
                 source.Remove(mod);
                 target.Add(edited);
             }
+
+            IsLoading(false);
 
             Refresh();
         }
@@ -166,6 +193,10 @@ namespace MarvelRivalManager.UI.Pages
         {
             if (sender is not Button button)
                 return;
+
+            var reload = false;
+
+            IsLoading(true);
 
             foreach (var mod in EnabledModsList.SelectedItems
                 .Select(item =>
@@ -179,6 +210,7 @@ namespace MarvelRivalManager.UI.Pages
             {
                 m_manager.Delete(mod!);
                 Enabled.Remove(mod!);
+                reload = true;
             }
 
             foreach (var mod in DisabledModsList.SelectedItems
@@ -193,9 +225,17 @@ namespace MarvelRivalManager.UI.Pages
             {
                 m_manager.Delete(mod!);
                 Disabled.Remove(mod!);
+                reload = true;
             }
 
-            Refresh();
+            IsLoading(false);
+
+            if (reload)
+            {
+                Refresh();
+                RefreshTags();
+            }
+
             button.IsEnabled = true;
         }
 
@@ -209,10 +249,15 @@ namespace MarvelRivalManager.UI.Pages
             if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
                 return;
 
+            IsLoading(true);
+
             var collection = mod.Metadata.Enabled ? Enabled : Disabled;
             m_manager.Delete(mod);
             collection.Remove(mod);
+
             Refresh();
+            RefreshTags();
+            IsLoading(false);
         }
 
         /// <summary>
@@ -304,6 +349,8 @@ namespace MarvelRivalManager.UI.Pages
                 return;
             }
 
+            IsLoading(true);
+
             // Calculate the insertion index
             var index = 0;
             if (target.Items.Count != 0 && target.ContainerFromIndex(0) is ListViewItem pivot)
@@ -312,10 +359,15 @@ namespace MarvelRivalManager.UI.Pages
                 index = Math.Min(target.Items.Count - 1, (int)(e.GetPosition(target.ItemsPanelRoot).Y / height));
             }
 
+            var moved = new ConcurrentBag<(ModViewModel original, ModViewModel edited, bool success)>();
+            var last = destination.Count == 0 ? 0 : destination.Max(mod => mod.Index);
+
             for (int pos = items.Length - 1; pos >= 0; pos--)
             {
+                last++;
+
                 var item = items[pos]!;
-                var (edited, success) = await Move(item, destination.Count + 1);
+                var (edited, success) = await Move(item, last);
                 if (success)
                 {
                     source.Remove(item);
@@ -325,6 +377,8 @@ namespace MarvelRivalManager.UI.Pages
 
             e.AcceptedOperation = DataPackageOperation.Move;
             operation.Complete();
+
+            IsLoading(false);
 
             Refresh();
         }
@@ -353,22 +407,65 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private void Refresh()
         {
+            var enabled = Enabled.Select(mod => mod);
+            var disabled = Disabled.Select(mod => mod);
+
+            if (FilterTags.SelectedItems.Count > 0)
+            {
+                var filterTag = FilterTags.SelectedItems
+                    .Select(tag => tag as TagViewModel)
+                    .Where(tag => tag is not null)
+                    .Select(tag => tag?.Value ?? string.Empty)
+                    .Where(tag => !string.IsNullOrEmpty(tag))
+                    .ToArray()
+                    ;
+
+                enabled = enabled.Where(mod => filterTag.All(tag => mod.AllTags.Contains(tag)));
+                disabled = disabled.Where(mod => filterTag.All(tag => mod.AllTags.Contains(tag)));
+            }
+
             if (!string.IsNullOrEmpty(Filter.Text))
             {
-                EnabledModsList.ItemsSource = new ModCollection(
-                    Enabled.Where(x => x.Tags.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase) ||
+                enabled = enabled.Where(x => 
+                    x.Tags.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase) ||
                     x.Metadata.Name.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase)
-                ));
-                DisabledModsList.ItemsSource = new ModCollection(
-                    Disabled.Where(x => x.Tags.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase) ||
+                );
+
+                disabled = disabled.Where(x =>
+                    x.Tags.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase) ||
                     x.Metadata.Name.Contains(Filter.Text, StringComparison.CurrentCultureIgnoreCase)
-                ));
+                );
             }
-            else
-            {
-                EnabledModsList.ItemsSource = Enabled;
-                DisabledModsList.ItemsSource = Disabled;
-            }
+
+            EnabledModsList.ItemsSource = new ModCollection(enabled);
+            DisabledModsList.ItemsSource = new ModCollection(disabled);            
+        }
+
+        /// <summary>
+        ///     Event that refresh filter tags
+        /// </summary>
+        private void RefreshTags()
+        {
+            Tags = Enabled.Concat(Disabled)
+                .Select(mod => (mod.Metadata.Tags ?? []).Concat(mod.Metadata.SystemTags ?? []))
+                .SelectMany(tags => tags)
+                .Where(tag => !string.IsNullOrEmpty(tag))
+                .Distinct()
+                .OrderBy(tag => tag)
+                .Select(tag => new TagViewModel(tag.Trim()))
+                .ToArray()
+                ;
+
+            FilterTags.ItemsSource = Tags;
+        }
+
+        /// <summary>
+        ///     Change the loading state of the page
+        /// </summary>
+        private void IsLoading(bool loading)
+        {
+            IsInProgress.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
+            IsInProgress.IsIndeterminate = loading;
         }
 
         #endregion

@@ -1,4 +1,6 @@
-﻿namespace MarvelRivalManager.Library.Services.Interface
+﻿using static MarvelRivalManager.Library.Entities.Delegates;
+
+namespace MarvelRivalManager.Library.Services.Interface
 {
     /// <summary>
     ///     Service dedicated to retrieve resources for the app
@@ -8,11 +10,11 @@
         /// <summary>
          ///     Delete the resource for repacker
          /// </summary>
-        public ValueTask<bool> Delete(Action<string, bool> informer);
+        public ValueTask<bool> Delete(PrintAndUndo informer);
 
         /// <summary>
         ///     Download a resource for repacker
         /// </summary>
-        public ValueTask<bool> Download(Action<string, bool> informer, CancellationToken? cancellationToken = null);
+        public ValueTask<bool> Download(PrintAndUndo informer, CancellationToken? cancellationToken = null);
     }
 }

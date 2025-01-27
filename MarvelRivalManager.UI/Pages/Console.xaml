@@ -12,7 +12,6 @@
 >
     <StackPanel>
         <CommandBar IsOpen="False" DefaultLabelPosition="Right" IsSticky="True" HorizontalAlignment="Left">
-            <AppBarButton Icon="Orientation" Label="Unpack" Click="UnpackButton_Click" />
             <AppBarButton Icon="SaveLocal" Label="Patch" Click="PatchButton_Click" />
             <AppBarButton Icon="Refresh" Label="Unpatch" Click="UnpatchButton_Click" />
             <AppBarSeparator />

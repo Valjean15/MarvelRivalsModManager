@@ -32,11 +32,40 @@
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Repack" FontSize="18"/>
+                <TextBlock Text="Packer" FontSize="18"/>
                 <component:FileInput 
                     Label="Executable folder" 
                     OnChange="Update"
                     Value="{x:Bind m_environment.Folders.RepackFolder, Mode=TwoWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="15" Margin="5">
+                <TextBlock Text="Options" FontSize="18"/>
+
+                <ToggleButton 
+                    MinWidth="300"
+                    Content="Deploy on separate files"
+                    Click="ToggleButton_Click"
+                    IsChecked="{x:Bind m_environment.Options.DeployOnSeparateFile, Mode=TwoWay}" />
+
+                <ToggleButton 
+                    MinWidth="300"
+                    Content="Evaluate mod when toggle (enable/disable)" 
+                    Click="ToggleButton_Click"
+                    IsChecked="{x:Bind m_environment.Options.EvaluateOnUpdate, Mode=TwoWay}" />
+
+                <ToggleButton 
+                    MinWidth="300"
+                    Content="Ignore the packer tool" 
+                    Click="ToggleButton_Click"
+                    IsChecked="{x:Bind m_environment.Options.IgnorePackerTool, Mode=TwoWay}" />
+
+                <ToggleButton 
+                    MinWidth="300"
+                    Content="(Experimental) Use parallel proccesing" 
+                    Click="ToggleButton_Click"
+                    IsChecked="{x:Bind m_environment.Options.UseParallelLoops, Mode=TwoWay}" />
+
             </StackPanel>
         </StackPanel>
     </ScrollView>

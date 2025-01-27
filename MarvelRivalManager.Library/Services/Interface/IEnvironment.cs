@@ -6,14 +6,19 @@
     public interface IEnvironment
     {
         /// <summary>
-        ///     Get the configuration
+        ///     Refresh the configuration
         /// </summary>
-        public IEnvironment Load();
+        public IEnvironment Refresh();
 
         /// <summary>
         ///     Folder paths
         /// </summary>
         public Folders Folders { get; set; }
+
+        /// <summary>
+        ///     Application behavior options
+        /// </summary>
+        public Options Options { get; set; }
     }
 
     /// <summary>
@@ -50,5 +55,31 @@
         ///     Folder of the repak tool
         /// </summary>
         public string RepackFolder { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    ///     Application behavior options
+    /// </summary>
+    public class Options
+    {
+        /// <summary>
+        ///     Indicate to use parallel loops
+        /// </summary>
+        public bool UseParallelLoops { get; set; }
+
+        /// <summary>
+        ///    Refers to deploy all the mods on separate files when patching the game
+        /// </summary>
+        public bool DeployOnSeparateFile { get; set; }
+
+        /// <summary>
+        ///    Refer to skip all actions related to unpacking the mods
+        /// </summary>
+        public bool IgnorePackerTool { get; set; }
+
+        /// <summary>
+        ///     Refers to make an evaluation of the mods when the user toggle the status (enable/disable)
+        /// </summary>
+        public bool EvaluateOnUpdate { get; set; }
     }
 }

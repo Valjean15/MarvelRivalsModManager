@@ -1,4 +1,5 @@
 ﻿using MarvelRivalManager.Library.Entities;
+using static MarvelRivalManager.Library.Entities.Delegates;
 
 namespace MarvelRivalManager.Library.Services.Interface
 {
@@ -8,23 +9,28 @@ namespace MarvelRivalManager.Library.Services.Interface
     public interface IRepack
     {
         /// <summary>
-        ///     Unpack the mods into the extraction folder
+        ///     Validate if the repak tool is present in the application
         /// </summary>
-        ValueTask<bool> CanBeUnPacked(Mod mods);
+        public ValueTask<bool> IsAvailable();
 
         /// <summary>
         ///     Unpack the mods into the extraction folder
         /// </summary>
-        ValueTask Unpack(Mod[] mods, Action<string> informer);
+        ValueTask<bool> CanBeUnPacked(Mod mod);
+
+        /// <summary>
+        ///     Unpack the mods into the extraction folder
+        /// </summary>
+        ValueTask<bool> Unpack(Print informer);
 
         /// <summary>
         ///     Get the folder of the unpacked mods
         /// </summary>
-        string GetUnpackedFolder(Action<string>? informer = null);
+        ValueTask<string> GetUnpackedFolder(Print? informer = null);
 
         /// <summary>
         ///     Get the file (packed) of the unpacked mods
         /// </summary>
-        ValueTask<string> Pack(Action<string> informer);
+        ValueTask<string[]> Pack(Print informer);
     }
 }

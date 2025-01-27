@@ -12,69 +12,82 @@ using System.Diagnostics;
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IResourcesClient"/>
-    internal class ResourcesClient(IEnvironment configuration, IDirectoryCheker cheker) : IResourcesClient
+    internal class ResourcesClient(IEnvironment configuration, IRepack repack) : IResourcesClient
     {
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
-        private readonly IDirectoryCheker Cheker = cheker;
+        private readonly IRepack Repack = repack;
         private readonly MegaApiClient Client = new();
         #endregion
 
-        /// <see cref="IResourcesClient.Delete(Action{string, bool})"/>
-        public async ValueTask<bool> Delete(Action<string, bool> informer)
+        /// <see cref="IResourcesClient.Delete(Delegates.PrintAndUndo)"/>
+        public async ValueTask<bool> Delete(Delegates.PrintAndUndo informer)
         {
+            if (Configuration.Options.IgnorePackerTool)
+            {
+                await informer("The Repack tool is ignored on the settings option section".AsLog(LogConstants.DOWNLOAD), false);
+                return true;
+            }
+
             var resource = Configuration.Folders.RepackFolder;
             if (string.IsNullOrEmpty(resource))
             {
-                informer("Repack folder is not defined".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Repack folder is not defined".AsLog(LogConstants.DOWNLOAD), false);
                 return false;
             }
 
             if (!Directory.Exists(resource))
             {
-                informer("Repack folder do not exist, creating folder. No need to delete.".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Repack folder do not exist, creating folder. No need to delete.".AsLog(LogConstants.DOWNLOAD), false);
                 resource.CreateDirectoryIfNotExist();
                 return true;
             }
 
+            await informer("Deleting repack folder content".AsLog(LogConstants.DOWNLOAD), false);
             resource.DeleteDirectoryContent();
             return true;
         }
 
-        /// <see cref="IResourcesClient.Download(Action{string, bool}, CancellationToken?)"/>
-        public async ValueTask<bool> Download(Action<string, bool> informer, CancellationToken? cancellationToken = null)
+        /// <see cref="IResourcesClient.Download(Delegates.PrintAndUndo, CancellationToken?)"/>
+        public async ValueTask<bool> Download(Delegates.PrintAndUndo informer, CancellationToken? cancellationToken = null)
         {
+            if (Configuration.Options.IgnorePackerTool)
+            {
+                await informer("The Repack tool is ignored on the settings option section".AsLog(LogConstants.DOWNLOAD), false);
+                return true;
+            }
+
             var resource = Configuration.Folders.RepackFolder;
             if (string.IsNullOrEmpty(resource))
             {
-                informer("Repack folder is not defined".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Repack folder is not defined".AsLog(LogConstants.DOWNLOAD), false);
                 return false;
             }
 
             if (!Directory.Exists(resource))
             {
-                informer("Repack folder do not exist, creating folder".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Repack folder do not exist, creating folder".AsLog(LogConstants.DOWNLOAD), false);
                 resource.CreateDirectoryIfNotExist();
             }
 
             // Already downloaded, no need to download again
-            if (Cheker.RepakToolExist())
+            if (await Repack.IsAvailable())
             {
-                informer("Resource folder Repack already downloaded".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Resource folder Repack already downloaded".AsLog(LogConstants.DOWNLOAD), false);
                 return true;
             }
 
             if (string.IsNullOrEmpty(await Download("Repack", resource, informer, cancellationToken)))
                 return false;
 
-            informer("Validating if the Repack exists".AsLog(LogConstants.DOWNLOAD), false);
-            if (!Cheker.RepakToolExist())
+            await informer("Validating if the Repack exists".AsLog(LogConstants.DOWNLOAD), false);
+            if (!await Repack.IsAvailable())
             {
-                informer("The Repack cannot be found".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("The Repack cannot be found".AsLog(LogConstants.DOWNLOAD), false);
                 return false;
             }
 
-            informer("The Repack was found".AsLog(LogConstants.DOWNLOAD), false);
+            await informer("The Repack was found".AsLog(LogConstants.DOWNLOAD), false);
             return true;
         }
 
@@ -83,7 +96,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <summary>
         ///     Download a resource from the service
         /// </summary>
-        private async ValueTask<string> Download(string name, string folder, Action<string, bool> informer, CancellationToken? cancellationToken)
+        private async ValueTask<string> Download(string name, string folder, Delegates.PrintAndUndo informer, CancellationToken? cancellationToken)
         {
             Stopwatch? time = null;
             string? downloadedFile = null;
@@ -95,19 +108,19 @@ namespace MarvelRivalManager.Library.Services.Implementation
             try
             {
                 // Login into the service
-                informer("Login into service...".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Login into service...".AsLog(LogConstants.DOWNLOAD), false);
                 time = Stopwatch.StartNew();
 
                 await Client.LoginAnonymousAsync();
 
                 time.Stop();
-                informer($"Login completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Login completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
 
                 time.Reset();
 
                 // Download the backup resource
                 time.Start();
-                informer($"Downloading the {resource} resource...".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Downloading the {resource} resource...".AsLog(LogConstants.DOWNLOAD), false);
 
                 INode? toDownload = null;
                 downloadedFile = Path.Combine(Configuration.Folders.DownloadFolder, resource);
@@ -122,7 +135,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
                 if (toDownload is null)
                 {
-                    informer($"Resource {resource} not found in the service".AsLog(LogConstants.DOWNLOAD), false);
+                    await informer($"Resource {resource} not found in the service".AsLog(LogConstants.DOWNLOAD), false);
                     time.Stop();
                     return string.Empty;
                 }
@@ -139,24 +152,24 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 }
 
                 time.Stop();
-                informer($"Download of the resource completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Download of the resource completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
 
                 time.Reset();
 
                 // Move the download to resource folder
                 time.Start();
-                informer($"Moving the download to resource folder for {resource}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Moving the download to resource folder for {resource}".AsLog(LogConstants.DOWNLOAD), false);
 
                 downloadedFileInFolder = downloadedFile.MakeSafeMove(Path.Combine(folder, resource));
 
                 time.Stop();
-                informer($"Moving the resource completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Moving the resource completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
 
                 time.Reset();
 
                 // Decompress the download to resource folder
                 time.Start();
-                informer($"Decompressing the download for resource {resource}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Decompressing the download for resource {resource}".AsLog(LogConstants.DOWNLOAD), false);
 
                 using (var archive = RarArchive.Open(downloadedFileInFolder))
                 {
@@ -176,13 +189,13 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 }
 
                 time.Stop();
-                informer($"Decompressing the files completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Decompressing the files completed - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.DOWNLOAD), false);
 
                 return folder;
             }
             catch (Exception ex)
             {
-                informer($"Error occurred trying to download backup resource => {ex.Message}".AsLog(LogConstants.DOWNLOAD), false);
+                await informer($"Error occurred trying to download backup resource => {ex.Message}".AsLog(LogConstants.DOWNLOAD), false);
                 return string.Empty;
             }
             finally
@@ -193,7 +206,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 downloadedFileInFolder?.DeleteFileIfExist();
                 extractedFolder.DeleteDirectoryIfExists();
 
-                informer("Logout from service...".AsLog(LogConstants.DOWNLOAD), false);
+                await informer("Logout from service...".AsLog(LogConstants.DOWNLOAD), false);
                 await Client.LogoutAsync();
             }
         }

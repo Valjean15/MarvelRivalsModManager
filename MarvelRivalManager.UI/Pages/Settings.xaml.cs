@@ -11,7 +11,7 @@ namespace MarvelRivalManager.UI.Pages
     {
         #region Dependencies
 
-        private readonly IEnvironment m_environment = Services.Get<IEnvironment>().Load();
+        private readonly IEnvironment m_environment = Services.Get<IEnvironment>().Refresh();
         
         #endregion
 
@@ -26,6 +26,15 @@ namespace MarvelRivalManager.UI.Pages
         ///     Update values of the environment. The object is updated due the two way binding
         /// </summary>
         private void Update(object sender, string value)
+        {
+            if (m_environment is AppEnvironment environment)
+                environment.Update(m_environment);
+        }
+
+        /// <summary>
+        ///     Update values of the environment. The object is updated due the two way binding
+        /// </summary>
+        private void ToggleButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             if (m_environment is AppEnvironment environment)
                 environment.Update(m_environment);
