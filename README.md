@@ -37,6 +37,14 @@ Represents the directories used to manage the enabled and disabled states of mod
  - **Unpacker**
 Represent were the mods are unpacked and merged to later be patched on the game content folder, also it contains the unpacker program (`repak.exe`) which is used to unpack `.pak` files with no hash password, also is used to pack the raw files again to later be moved to the game content
 
+ - **Options**
+Here you can found some optional features that can improve or adjust of how you wanna use the manager.
+	 - Deploy on separate file: This refer on how you set the patch files on the game folder, by default the manager only set one unified file for all mods, but with this you can separate each mod per file.
+	 - Evaluate mod when toggle (enable/disable): This refer of how often the manager will try to update the system information of the mod, by default now only evaluate once when the mod is added, with this you can evaluate the mod each time is updated (move to enable or disable or patch to the game).
+	 - Ignore the packer tool: This refer that the manager will no use the unpacker tool at all if you wanna only manage the mods and not use the actions at all.
+  	 - Use parallel proccesing: This refer to proccess each mod/file/action on parallel to make a faster evaluation or patch in general.
+
+
 ## Manager
 The manager separate the mods into two sections *Enabled* and *Disabled*, which each one represent a folder, described on the **Settings** section, and by default only *Enabled* mods would be patch into the game raw files.
 
@@ -60,8 +68,10 @@ The actions view is more dedicated to apply the raw files of the mods (compresse
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Action.png)
 
-- **Unpack**
-Retrieve all the mods on the *Enabled* list, and try to unpack into raw files and merge all this content into a folder called `extraction`, located on the **Unpacker** folder, to later be patched on the game folder thought the *Patch* option.
+-  **Patch**
+Retrieve all the mods on the *Enabled* list, and try to unpack into raw files and merge all this content into a folder called `extraction`, located on the **Unpacker** folder, then retrieve all the mods that are marked as *unpacked*, pack all files into a single `.pak` file and move it to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder.
+
+- Also there is an option to deploy all mod in individual `.pak` file, described on the Settings page.
 
 ```mermaid
 graph LR
@@ -78,11 +88,8 @@ validate[Validate structure] -- Invalid --> ignored((Ignored))
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Unpack.png)
 
--  **Patch**
-Retrieve all the mods that are marked as *unpacked*, pack all files into a single `.pak` file and move it to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder.
-
 - **Unpatch**
-	Tries to delete the generated `.pak` file on the content folder.
+	Tries to delete all the generated `.pak` files on the content folder.
 
 - **Download**
 	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe`.
