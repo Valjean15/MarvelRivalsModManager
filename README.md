@@ -18,6 +18,43 @@ For the Season 1 (patch), it's needed to download (can be using the manager or a
 
 After that you can configure the mods you wanna install, after managing the mods, just remain to click on the button *Unpack* (to unpack the mod enabled) and at last *Patch* to apply the mods unpacked.
 
+## How install the app
+You can use the portable version, but also there is an installer which you can use, only require install a certificate related to the app, thanks [RedJulu](https://github.com/RedJulu) for the [guide](https://github.com/Valjean15/MarvelRivalsModManager/issues/3#issue-2816645011).
+
+![alt text](https://i.imgur.com/acHPbal.png)
+
+1. First Right Click on the MarvelRivalManager.UI_1.1.1.0_x64.msix and click on Properties
+
+![alt text](https://i.imgur.com/ivs0g8b.png)
+
+2. Then Click on Digital Signatures
+
+![alt text](https://i.imgur.com/Gd8d3Bq.png)
+
+3. Then choose the jeanl Certificate from the list and click on Details and then View Certificate
+
+![alt text](https://i.imgur.com/CIBmTQL.png)
+
+4. Choose Install Certificate
+
+![alt text](https://i.imgur.com/rr9Ewt4.png)
+
+5. Press Local Machine and Next (YOU NEED ADMIN PRIVILEGES If you don't have 'em no goonin for ya :})
+
+![alt text](https://i.imgur.com/h9toKbS.png)
+
+6. Select the Trustet People Folder and click Next
+
+![alt text](https://i.imgur.com/PlUtwHA.png)
+
+7. Press on Finish and you're ready to go(on)
+
+![alt text](https://i.imgur.com/FuurgzJ.png)
+
+8. If you run the MarvelRivalManager.UI_1.1.1.0_x64.msix again you should see the Install Button Blue
+
+![alt text](https://i.imgur.com/sduy81I.png)
+
 # Mod manager
 The mod manager is separated on three views, which are related between each other thought a layer of services.
 
@@ -36,6 +73,14 @@ Represents the directories used to manage the enabled and disabled states of mod
 	
  - **Unpacker**
 Represent were the mods are unpacked and merged to later be patched on the game content folder, also it contains the unpacker program (`repak.exe`) which is used to unpack `.pak` files with no hash password, also is used to pack the raw files again to later be moved to the game content
+
+ - **Options**
+Here you can found some optional features that can improve or adjust of how you wanna use the manager.
+	 - Deploy on separate file: This refer on how you set the patch files on the game folder, by default the manager only set one unified file for all mods, but with this you can separate each mod per file.
+	 - Evaluate mod when toggle (enable/disable): This refer of how often the manager will try to update the system information of the mod, by default now only evaluate once when the mod is added, with this you can evaluate the mod each time is updated (move to enable or disable or patch to the game).
+	 - Ignore the packer tool: This refer that the manager will no use the unpacker tool at all if you wanna only manage the mods and not use the actions at all.
+  	 - Use parallel proccesing: This refer to proccess each mod/file/action on parallel to make a faster evaluation or patch in general.
+
 
 ## Manager
 The manager separate the mods into two sections *Enabled* and *Disabled*, which each one represent a folder, described on the **Settings** section, and by default only *Enabled* mods would be patch into the game raw files.
@@ -60,8 +105,10 @@ The actions view is more dedicated to apply the raw files of the mods (compresse
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Action.png)
 
-- **Unpack**
-Retrieve all the mods on the *Enabled* list, and try to unpack into raw files and merge all this content into a folder called `extraction`, located on the **Unpacker** folder, to later be patched on the game folder thought the *Patch* option.
+-  **Patch**
+Retrieve all the mods on the *Enabled* list, and try to unpack into raw files and merge all this content into a folder called `extraction`, located on the **Unpacker** folder, then retrieve all the mods that are marked as *unpacked*, pack all files into a single `.pak` file and move it to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder.
+
+- Also there is an option to deploy all mod in individual `.pak` file, described on the Settings page.
 
 ```mermaid
 graph LR
@@ -78,11 +125,8 @@ validate[Validate structure] -- Invalid --> ignored((Ignored))
 
 ![alt text](https://github.com/Valjean15/MarvelRivalsModManager/blob/master/Blob/Unpack.png)
 
--  **Patch**
-Retrieve all the mods that are marked as *unpacked*, pack all files into a single `.pak` file and move it to the game folder content. If there is a disabled mod that is *unpacked* the manager would try to remove the files affected on the extraction folder.
-
 - **Unpatch**
-	Tries to delete the generated `.pak` file on the content folder.
+	Tries to delete all the generated `.pak` files on the content folder.
 
 - **Download**
 	This options would try to download from [Mega folder](https://mega.nz/folder/m1xmxT4Y#J-wEYO5NyLgT_WWG13CMzA) the files needed to the manager to work as the `repak.exe`.
