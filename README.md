@@ -18,6 +18,43 @@ For the Season 1 (patch), it's needed to download (can be using the manager or a
 
 After that you can configure the mods you wanna install, after managing the mods, just remain to click on the button *Unpack* (to unpack the mod enabled) and at last *Patch* to apply the mods unpacked.
 
+## How install the app
+You can use the portable version, but also there is an installer which you can use, only require install a certificate related to the app, thanks [RedJulu](https://github.com/RedJulu) for the [guide](https://github.com/Valjean15/MarvelRivalsModManager/issues/3#issue-2816645011).
+
+![alt text](https://i.imgur.com/acHPbal.png)
+
+1. First Right Click on the MarvelRivalManager.UI_1.1.1.0_x64.msix and click on Properties
+
+![alt text](https://i.imgur.com/ivs0g8b.png)
+
+2. Then Click on Digital Signatures
+
+![alt text](https://i.imgur.com/Gd8d3Bq.png)
+
+3. Then choose the jeanl Certificate from the list and click on Details and then View Certificate
+
+![alt text](https://i.imgur.com/CIBmTQL.png)
+
+4. Choose Install Certificate
+
+![alt text](https://i.imgur.com/rr9Ewt4.png)
+
+5. Press Local Machine and Next (YOU NEED ADMIN PRIVILEGES If you don't have 'em no goonin for ya :})
+
+![alt text](https://i.imgur.com/h9toKbS.png)
+
+6. Select the Trustet People Folder and click Next
+
+![alt text](https://i.imgur.com/PlUtwHA.png)
+
+7. Press on Finish and you're ready to go(on)
+
+![alt text](https://i.imgur.com/FuurgzJ.png)
+
+8. If you run the MarvelRivalManager.UI_1.1.1.0_x64.msix again you should see the Install Button Blue
+
+![alt text](https://i.imgur.com/sduy81I.png)
+
 # Mod manager
 The mod manager is separated on three views, which are related between each other thought a layer of services.
 
