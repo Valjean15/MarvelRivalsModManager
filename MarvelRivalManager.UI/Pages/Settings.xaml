@@ -40,6 +40,14 @@
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5">
+                <TextBlock Text="Theme" FontSize="18"/>
+                <Button x:Name="ToggleThemeButton"
+                    MinWidth="300"
+                    Content="{x:Bind SelectedTheme, Mode=OneWay}"
+                    Click="ToggleThemeButton_Click"/>
+            </StackPanel>
+
+            <StackPanel Spacing="15" Margin="5">
                 <TextBlock Text="Options" FontSize="18"/>
 
                 <ToggleButton 

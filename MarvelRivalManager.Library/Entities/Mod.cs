@@ -20,14 +20,16 @@ namespace MarvelRivalManager.Library.Entities
             { "UI", "UI" },
             { "Movies", "movies" },
             { "Characters", "character" },
-            { "Wwise", "audio" }
+            { "Wwise", "audio" },
+            { "WwiseAudio", "audio" }
         };
 
         public static readonly Dictionary<string, string> SubCategories = new()
         {
             { "Meshes", "model" },
             { "Weapons", "weapons" },
-            { "Textures", "textures" }
+            { "Characters/*/Texture", "textures" },
+            { "Characters/*/Textures", "textures" }
         };
 
         #endregion
@@ -37,20 +39,11 @@ namespace MarvelRivalManager.Library.Entities
             if (!Directory.Exists(file.ExtractionContent))
                 return [];
 
-            var tags = new List<string>();
-            if (file.ExtractionContent.DirectoryContainsSubfolder("UI"))
-                tags.Add(Categories["UI"]);
-
-            if (file.ExtractionContent.DirectoryContainsSubfolder("Movies"))
-                tags.Add(Categories["Movies"]);
-
-            if (file.ExtractionContent.DirectoryContainsSubfolder("Characters"))
-                tags.Add(Categories["Characters"]);
-
-            if (file.ExtractionContent.DirectoryContainsSubfolder("WwiseAudio") || file.ExtractionContent.DirectoryContainsSubfolder("Wwise"))
-                tags.Add(Categories["Wwise"]);
-
-            return [.. tags];
+            return Categories
+                .Where(category => EvaluateDirectory(file.ExtractionContent, category.Key))
+                .Select(category => category.Value)
+                .Distinct()
+                .ToArray();
         }
 
         public static string[] GetFormatTag(FileInformation file)
@@ -63,18 +56,36 @@ namespace MarvelRivalManager.Library.Entities
             if (!Directory.Exists(file.ExtractionContent))
                 return [];
 
-            var tags = new List<string>();
+            return SubCategories
+                .Where(subcategory => EvaluateDirectory(file.ExtractionContent, subcategory.Key))
+                .Select(subcategory => subcategory.Value)
+                .Distinct()
+                .ToArray();
+        }
 
-            if (file.ExtractionContent.DirectoryContainsSubfolder("Meshes"))
-                tags.Add(SubCategories["Meshes"]);
+        private static bool EvaluateDirectory(string folder, string subfolder)
+        {
+            var parts = subfolder.Split('/');
+            if (parts.Length == 0)
+                return false;
 
-            if (file.ExtractionContent.DirectoryContainsSubfolder("Weapons"))
-                tags.Add(SubCategories["Weapons"]);
+            if (parts.Length == 1 || !parts.Contains("*"))
+                return folder.DirectoryContainsSubfolder(subfolder);
 
-            if (file.ExtractionContent.DirectoryContainsSubfolder("Textures"))
-                tags.Add(SubCategories["Textures"]);
+            var main = parts.Last();
+            var candidates = Directory.GetDirectories(folder, main, SearchOption.AllDirectories);
+            if (candidates.Length == 0)
+                return false;
 
-            return [.. tags];
+            var parent = parts.First().TrimStart('!');
+            var negate = parts.First()[0] == '!';
+            foreach (var candidate in candidates)
+            {
+                if (candidate.Contains($"\\{parent}\\") != negate)
+                    return true;
+            }
+
+            return false;
         }
     }
 

@@ -18,6 +18,11 @@ namespace MarvelRivalManager.Library.Services.Interface
         public ValueTask<Mod> Update(Mod mod);
 
         /// <summary>
+        ///     Evaluate a mod from the manager
+        /// </summary>
+        public ValueTask<Mod> Evaluate(Mod mod);
+
+        /// <summary>
         ///     Remove a mod from manager
         /// </summary>
         public void Delete(Mod mod);

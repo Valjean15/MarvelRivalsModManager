@@ -199,32 +199,19 @@ namespace MarvelRivalManager.UI.Pages
             IsLoading(true);
 
             foreach (var mod in EnabledModsList.SelectedItems
+                .Concat(DisabledModsList.SelectedItems)
                 .Select(item =>
                 {
                     if (item is not ModViewModel mod)
                         return null;
-                    return mod;
-                })
-                .Where(item => item is not null)
-                .ToArray())
-            {
-                m_manager.Delete(mod!);
-                Enabled.Remove(mod!);
-                reload = true;
-            }
 
-            foreach (var mod in DisabledModsList.SelectedItems
-                .Select(item =>
-                {
-                    if (item is not ModViewModel mod)
-                        return null;
                     return mod;
                 })
                 .Where(item => item is not null)
                 .ToArray())
             {
                 m_manager.Delete(mod!);
-                Disabled.Remove(mod!);
+                (mod!.Metadata.Enabled ? Enabled : Disabled).Remove(mod!);
                 reload = true;
             }
 
@@ -274,6 +261,62 @@ namespace MarvelRivalManager.UI.Pages
                 .PrepareConnectedAnimation("ForwardConnectedAnimation", Selected, "ConnectedElement");
 
             Frame.Navigate(typeof(ModView), Selected, new SuppressNavigationTransitionInfo());
+        }
+
+        /// <summary>
+        ///     Event when a mod is evaluated via the unpacker
+        /// </summary>
+        private async void CollectionEvaluate(object sender, RoutedEventArgs _)
+        {
+            if (sender is not Button button)
+                return;
+
+            var reload = false;
+
+            IsLoading(true);
+
+            foreach (var mod in EnabledModsList.SelectedItems
+                .Concat(DisabledModsList.SelectedItems)
+                .Select(item =>
+                {
+                    if (item is not ModViewModel mod)
+                        return null;
+
+                    return mod;
+                })
+                .Where(item => item is not null)
+                .ToArray())
+            {
+                await m_manager.Evaluate(mod!);
+                reload = true;
+            }
+
+            IsLoading(false);
+
+            if (reload)
+            {
+                Refresh();
+                RefreshTags();
+            }
+
+            button.IsEnabled = true;
+        }
+
+        /// <summary>
+        ///     Event when a mod is evaluated via the unpacker
+        /// </summary>
+        private async void CollectionEvaluateSingle(object sender, RoutedEventArgs _)
+        {
+            if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
+                return;
+
+            IsLoading(true);
+
+            await m_manager.Evaluate(mod);
+
+            Refresh();
+            RefreshTags();
+            IsLoading(false);
         }
 
         #region Drag and Drop

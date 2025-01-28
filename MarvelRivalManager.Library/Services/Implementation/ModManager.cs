@@ -15,20 +15,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IModManager.Add(string)"/>
         public async ValueTask<Mod> Add(string filepath)
         {
-            var mod = new Mod(filepath);
-
-            // Evaluate mod
-            mod.Metadata.Valid = Configuration.Options.IgnorePackerTool || await Unpacker.CanBeUnPacked(mod);
+            var mod = await Evaluate(new Mod(filepath));
             mod.Metadata.Enabled = mod.Metadata.Valid;
-
-            // If the mod is valid we can set system information
-            if (!Configuration.Options.IgnorePackerTool && mod.Metadata.Valid)
-            {
-                await mod.SetSystemInformation();
-                mod.Update();
-            }
-
-            mod.File.Extraction.DeleteDirectoryIfExists();
 
             Move(mod, mod.Metadata.Enabled
                 ? Configuration.Folders.ModsEnabled
@@ -41,23 +29,29 @@ namespace MarvelRivalManager.Library.Services.Implementation
         public async ValueTask<Mod> Update(Mod mod)
         {
             if (Configuration.Options.EvaluateOnUpdate)
-            {
-                // Evaluate mod
-                mod.Metadata.Valid = Configuration.Options.IgnorePackerTool || await Unpacker.CanBeUnPacked(mod);
-
-                // If the mod is valid we can set system information
-                if (!Configuration.Options.IgnorePackerTool && mod.Metadata.Valid)
-                {
-                    await mod.SetSystemInformation();
-                    mod.Update();
-                }
-
-                mod.File.Extraction.DeleteDirectoryIfExists();
-            }
+                mod = await Evaluate(mod);
 
             Move(mod, mod.Metadata.Enabled
                 ? Configuration.Folders.ModsEnabled
                 : Configuration.Folders.ModsDisabled);
+
+            return mod;
+        }
+
+        /// <see cref="IModManager.Evaluate(Mod)"/>
+        public async ValueTask<Mod> Evaluate(Mod mod)
+        {
+            // Evaluate mod
+            mod.Metadata.Valid = Configuration.Options.IgnorePackerTool || await Unpacker.CanBeUnPacked(mod);
+
+            // If the mod is valid we can set system information
+            if (!Configuration.Options.IgnorePackerTool && mod.Metadata.Valid)
+            {
+                await mod.SetSystemInformation();
+                mod.Update();
+            }
+
+            mod.File.Extraction.DeleteDirectoryIfExists();
 
             return mod;
         }

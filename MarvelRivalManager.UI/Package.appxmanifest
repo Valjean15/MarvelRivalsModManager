@@ -11,7 +11,7 @@
   <Identity
     Name="b689476b-c5c1-443e-b56d-b9712cfae328"
     Publisher="CN=jeanl"
-    Version="1.1.1.0" />
+    Version="1.1.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="b689476b-c5c1-443e-b56d-b9712cfae328" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

@@ -19,6 +19,7 @@
                     <MenuFlyout>
                         <MenuFlyoutItem Icon="MoveToFolder" Text="Move" Click="CollectionMoveSingle"/>
                         <MenuFlyoutItem Icon="Edit" Text="Edit" Click="CollectionEditSingle"/>
+                        <MenuFlyoutItem Icon="Orientation" Text="Evaluate" Click="CollectionEvaluateSingle"/>
                         <MenuFlyoutSeparator/>
                         <MenuFlyoutItem Icon="Delete" Text="Delete" Click="CollectionDeleteSingle"/>
                     </MenuFlyout>
@@ -100,6 +101,7 @@
             <StackPanel Orientation="Horizontal">
                 <CommandBar IsOpen="False" DefaultLabelPosition="Right" IsSticky="True" HorizontalAlignment="Left">
                     <AppBarButton Icon="Add" Label="Add" Click="CollectionAdd"/>
+                    <AppBarButton Icon="Orientation" Label="Evaluate" Click="CollectionEvaluate"/>
                     <AppBarSeparator />
                     <AppBarButton Icon="Delete" Label="Delete" Click="CollectionRemove"/>
                 </CommandBar>

@@ -76,6 +76,8 @@ namespace MarvelRivalManager.UI
                 m_win32WindowHelper = new Win32WindowHelper(m_window);
                 m_win32WindowHelper.SetWindowMinMaxSize(new Win32WindowHelper.POINT() { x = 1000, y = 800 });
             }
+
+            ThemeHelper.Initialize();
         }
     }
 

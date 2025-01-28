@@ -15,11 +15,6 @@ namespace MarvelRivalManager.UI.Configuration
     public interface IAppEnvironment : IEnv
     {
         /// <summary>
-        ///     Refers to the version of the configuration
-        /// </summary>
-        public string Version { get; set; }
-
-        /// <summary>
         ///     Write on the user settings the new values
         /// </summary>
         public void Update(IEnv environment);
@@ -49,9 +44,6 @@ namespace MarvelRivalManager.UI.Configuration
 
         #endregion
 
-        /// <see cref="IAppEnvironment.Version"/>
-        public string Version { get; set; } = "1.1.0";
-
         /// <see cref="IEnv.Refresh"/>
         public override IAppEnvironment Refresh()
         {
@@ -73,7 +65,7 @@ namespace MarvelRivalManager.UI.Configuration
         /// <see cref="IAppEnvironment.Update(IEnv)"/>
         public void Update(IEnv environment)
         {
-            UserSettingsFile.WriteFileContent(environment);
+            UserSettingsFile.WriteFileContent(environment as AppEnvironment);
         }
 
         #region Private Methods

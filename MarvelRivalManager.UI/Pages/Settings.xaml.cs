@@ -1,5 +1,7 @@
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.UI.Configuration;
+using MarvelRivalManager.UI.Helper;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace MarvelRivalManager.UI.Pages
@@ -10,9 +12,11 @@ namespace MarvelRivalManager.UI.Pages
     public sealed partial class Settings : Page
     {
         #region Dependencies
-
         private readonly IEnvironment m_environment = Services.Get<IEnvironment>().Refresh();
-        
+        #endregion
+
+        #region Fields
+        private string SelectedTheme => ThemeHelper.ActualTheme.ToString();
         #endregion
 
         public Settings()
@@ -25,16 +29,37 @@ namespace MarvelRivalManager.UI.Pages
         /// <summary>
         ///     Update values of the environment. The object is updated due the two way binding
         /// </summary>
-        private void Update(object sender, string value)
+        private void Update(object _, string __)
         {
-            if (m_environment is AppEnvironment environment)
-                environment.Update(m_environment);
+            UpdateSettings();
         }
 
         /// <summary>
         ///     Update values of the environment. The object is updated due the two way binding
         /// </summary>
-        private void ToggleButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        private void ToggleButton_Click(object _, RoutedEventArgs __)
+        {
+            UpdateSettings();
+        }
+
+        /// <summary>
+        ///     Toggle the theme of the application
+        /// </summary>
+        private void ToggleThemeButton_Click(object _, RoutedEventArgs __)
+        {
+            var next = ThemeHelper.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
+            ThemeHelper.Update(next);
+            ToggleThemeButton.Content = next.ToString();
+        }
+
+        #endregion
+
+        #region Private methods
+
+        /// <summary>
+        ///     Update the settings of the application
+        /// </summary>
+        private void UpdateSettings()
         {
             if (m_environment is AppEnvironment environment)
                 environment.Update(m_environment);
