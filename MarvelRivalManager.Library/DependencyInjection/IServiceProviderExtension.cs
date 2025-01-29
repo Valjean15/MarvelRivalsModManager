@@ -12,6 +12,7 @@ namespace Microsoft.Extensions.Configuration
                 .AddSingleton<IModDataAccess, ModDataAccess>()
                 .AddSingleton<IResourcesClient, ResourcesClient>()
                 .AddSingleton<IModManager, ModManager>()
+                .AddSingleton<IProfileManager, ProfileManager>()
                 .AddSingleton<IRepack, Repack>()
                 .AddSingleton<IPatcher, Patcher>()
                 ;

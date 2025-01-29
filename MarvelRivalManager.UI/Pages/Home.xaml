@@ -20,6 +20,7 @@
         AlwaysShowHeader="True"
     >
         <NavigationView.MenuItems>
+            
             <NavigationViewItem 
                 x:FieldModifier="private" x:Name="DefaultPage" 
                 Content="Mods" 
@@ -29,6 +30,7 @@
                     <SymbolIcon Symbol="Edit"/>
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
+            
             <NavigationViewItem 
                 x:FieldModifier="private"
                 Content="Actions" 
@@ -38,6 +40,7 @@
                     <SymbolIcon Symbol="Admin"/>
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
+
         </NavigationView.MenuItems>
 
         <Frame 

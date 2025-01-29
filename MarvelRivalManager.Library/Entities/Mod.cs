@@ -134,9 +134,6 @@ namespace MarvelRivalManager.Library.Entities
         }
     }
 
-    /// <summary>
-    ///     Partial information of the mod extracted from the file
-    /// </summary>
     public class FileInformation(string filepath)
     {
         public string Filepath { get; set; } = filepath;

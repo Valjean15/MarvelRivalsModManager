@@ -20,7 +20,7 @@ namespace MarvelRivalManager.UI.Pages
         {
             { Settings.Name, "Settings" },
             { typeof(ModManager).Name, "Mods" },
-            { typeof(Console).Name, "Actions" }
+            { typeof(Console).Name, "Actions" },
         };
         #endregion
 

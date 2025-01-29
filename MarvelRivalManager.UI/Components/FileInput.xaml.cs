@@ -18,7 +18,6 @@ namespace MarvelRivalManager.UI.Components
         #region Constants
 
         private const string ACTIVITY_ID = "FolderPickedNotificationId";
-        private const string PERMISSION_TOKEN = "PickedFolderToken";
 
         #endregion
 

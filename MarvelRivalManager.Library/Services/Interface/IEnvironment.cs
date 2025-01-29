@@ -55,6 +55,11 @@
         ///     Folder of the repak tool
         /// </summary>
         public string RepackFolder { get; set; } = string.Empty;
+
+        /// <summary>
+        ///     Folder where the collections are stored
+        /// </summary>
+        public string Collections { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -81,5 +86,10 @@
         ///     Refers to make an evaluation of the mods when the user toggle the status (enable/disable)
         /// </summary>
         public bool EvaluateOnUpdate { get; set; }
+
+        /// <summary>
+        ///     Refers that the manager can manage multiple profiles of mods
+        /// </summary>
+        public bool UseMultipleProfiles { get; set; }
     }
 }

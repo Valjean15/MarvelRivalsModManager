@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="MarvelRivalManager.UI.Components.ModCollection"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MarvelRivalManager.UI.Components"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:MarvelRivalManager.UI.ViewModels"
+    mc:Ignorable="d"
+    
+    Loaded="CollectionControl_Loaded"
+>
+    <UserControl.Resources>
+        <DataTemplate x:Key="ModTemplate" x:DataType="model:ModViewModel">
+            <Grid Loaded="Grid_Loaded">
+                
+                <Grid.ContextFlyout>
+                    <MenuFlyout x:Name="ContextMenu">
+
+                        <MenuFlyoutItem x:Name="ContextMenu_Move"
+                            Icon="MoveToFolder" 
+                            Text="Move" 
+                            Click="OnMoveHandler"/>
+
+                        <MenuFlyoutItem x:Name="ContextMenu_Edit"
+                            Icon="Edit" 
+                            Text="Edit" 
+                            Click="OnEditHandler"/>
+
+                        <MenuFlyoutItem x:Name="ContextMenu_Evaluate"
+                            Icon="Orientation" 
+                            Text="Evaluate" 
+                            Click="OnEvaluateHandler"/>
+
+                        <MenuFlyoutSeparator x:Name="ContextMenu_Delete_Separator"/>
+
+                        <MenuFlyoutItem x:Name="ContextMenu_Delete"
+                            Icon="Delete" 
+                            Text="Delete" 
+                            Click="OnDeleteHandler"/>
+                        
+                    </MenuFlyout>
+                </Grid.ContextFlyout>
+                
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="10"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Grid.RowSpan="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Ellipse x:Name="ConnectedElement"
+                        Width ="40"
+                        Height="40"
+                        Margin="6"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Fill="{ThemeResource ControlStrongFillColorDefaultBrush}"
+                        Visibility="{x:Bind NoHasLogo, Mode=OneWay}"
+                    />
+                    <Image x:Name="LogoPlaceholder"
+                        Grid.Column="0" Grid.RowSpan="3"
+                        Width ="40"
+                        Height="40"
+                        Margin="6"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Stretch="Uniform"
+                        Source="{x:Bind NonNullableLogo, Mode=OneWay}"
+                        Visibility="{x:Bind HasLogo, Mode=OneWay}"
+                    />
+                </StackPanel>
+
+                <TextBlock x:Phase="1"
+                    Grid.Column="1" Grid.Row="0"
+                    Margin="12,6,0,0"
+                    Text="{x:Bind Name}"
+                    Style="{ThemeResource BaseTextBlockStyle}"
+                />
+
+                <TextBlock x:Phase="2"
+                    Grid.Column="2" Grid.Row="1"
+                    Margin="12,0,0,6"
+                    Text="{x:Bind Tags}"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                />
+
+                <GridViewItem
+                    Grid.Column="2" Grid.Row="2"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Height="10"
+                >
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon Visibility="{x:Bind Metadata.Active}" Glyph="&#xE78C;" FontSize="15"/>
+                        <FontIcon Visibility="{x:Bind Metadata.Unpacked}" Glyph="&#xE8B4;" FontSize="15"/>
+                        <FontIcon Visibility="{x:Bind Invalid}" Glyph="&#xE7BA;" FontSize="15"/>
+                    </StackPanel>
+                </GridViewItem>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Vertical">
+        <TextBlock Text="{x:Bind Title, Mode=TwoWay}" FontSize="24" />
+        <ListView x:Name="ModCollectionList"
+            MinHeight="100"
+            SelectionMode="Multiple"
+            ItemTemplate="{StaticResource ModTemplate}"
+            CanDragItems="True"
+            CanReorderItems="True"
+            AllowDrop="True"     
+            DragItemsStarting="ModCollectionList_DragItemsStarting"
+            DragOver="ModCollectionList_DragOver"
+            Drop="ModCollectionList_Drop"
+            Loaded="ModCollectionList_Loaded"      
+        />
+    </StackPanel>
+
+</UserControl>

@@ -15,8 +15,11 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Components\FileInput.xaml" />
+    <None Remove="Components\ModCollection.xaml" />
     <None Remove="Components\ReadOnlyText.xaml" />
+    <None Remove="Components\TagList.xaml" />
     <None Remove="Pages\Console.xaml" />
+    <None Remove="Pages\Dialogs\TextInputDialog.xaml" />
     <None Remove="Pages\ModManager.xaml" />
     <None Remove="Pages\ModView.xaml" />
     <None Remove="Pages\Settings.xaml" />
@@ -60,6 +63,15 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="Pages\Dialogs\TextInputDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Components\TagList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Components\ModCollection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Components\ReadOnlyText.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

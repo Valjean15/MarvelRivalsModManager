@@ -18,6 +18,11 @@ namespace MarvelRivalManager.UI.Configuration
         ///     Write on the user settings the new values
         /// </summary>
         public void Update(IEnv environment);
+
+        /// <summary>
+        ///     Get default configuration
+        /// </summary>
+        public IEnv Default();
     }
 
     /// <see cref="IAppEnvironment"/>
@@ -52,7 +57,13 @@ namespace MarvelRivalManager.UI.Configuration
             var stored = UserSettingsFile.DeserializeFileContent<AppEnvironment>();
 
             if (stored is null)
-                LoadDefaultConfiguration();
+            {
+                var @default = Default();
+                Options = @default.Options;
+                Folders = @default.Folders;
+
+                Update(this);
+            }
 
             var values = UserSettingsFile.DeserializeFileContent<AppEnvironment>()!;
             
@@ -68,39 +79,35 @@ namespace MarvelRivalManager.UI.Configuration
             UserSettingsFile.WriteFileContent(environment as AppEnvironment);
         }
 
-        #region Private Methods
-
-        /// <summary>
-        ///     Load the default configuration and save it
-        /// </summary>
-        private void LoadDefaultConfiguration()
+        /// <see cref="IAppEnvironment.Default"/>
+        public IEnv Default()
         {
             var disabled = Path.Combine(UserSettingsFolder, "disabled");
             var enabled = Path.Combine(UserSettingsFolder, "enabled");
             var repak = Path.Combine(UserSettingsFolder, "repak");
             var download = Path.Combine(UserSettingsFolder, "download");
+            var collections = Path.Combine(UserSettingsFolder, "collections");
 
             disabled.CreateDirectoryIfNotExist();
             enabled.CreateDirectoryIfNotExist();
             repak.CreateDirectoryIfNotExist();
             download.CreateDirectoryIfNotExist();
+            collections.CreateDirectoryIfNotExist();
 
-            // Create default user settings
-            Folders = new Folders()
+            return new AppEnvironment
             {
-                GameContent = SteamFolderLookup.GetGameFolderByRelativePath(Folders.GameContent),
-                MegaFolder = Folders.MegaFolder,
-                DownloadFolder = download,
-                ModsDisabled = disabled,
-                ModsEnabled = enabled,
-                RepackFolder = repak
+                Folders = new Folders()
+                {
+                    GameContent = SteamFolderLookup.GetGameFolderByRelativePath(Folders.GameContent),
+                    MegaFolder = Folders.MegaFolder,
+                    Collections = collections,
+                    DownloadFolder = download,
+                    ModsDisabled = disabled,
+                    ModsEnabled = enabled,
+                    RepackFolder = repak
+                },
+                Options = new Options()
             };
-
-            Options = new Options();
-
-            Update(this);
         }
-
-        #endregion
     }
 }

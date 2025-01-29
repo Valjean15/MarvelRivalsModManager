@@ -17,6 +17,7 @@ namespace MarvelRivalManager.UI.Pages
 
         #region Fields
         private string SelectedTheme => ThemeHelper.ActualTheme.ToString();
+        private bool CanChangeTheme => NativeHelper.IsAppPackaged;
         #endregion
 
         public Settings()
@@ -47,6 +48,9 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private void ToggleThemeButton_Click(object _, RoutedEventArgs __)
         {
+            if (!CanChangeTheme)
+                return;
+
             var next = ThemeHelper.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
             ThemeHelper.Update(next);
             ToggleThemeButton.Content = next.ToString();

@@ -1,10 +1,14 @@
+using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
+using MarvelRivalManager.UI.Configuration;
 using MarvelRivalManager.UI.Helper;
+using MarvelRivalManager.UI.Pages.Dialogs;
 using MarvelRivalManager.UI.ViewModels;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -12,9 +16,8 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.DataTransfer;
+
 using Windows.Foundation.Metadata;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -31,14 +34,19 @@ namespace MarvelRivalManager.UI.Pages
         private readonly IEnvironment m_environment = Services.Get<IEnvironment>();
         private readonly IModManager m_manager = Services.Get<IModManager>();
         private readonly IModDataAccess m_query = Services.Get<IModDataAccess>();
+        private readonly IProfileManager m_profiles = Services.Get<IProfileManager>();
 
         #endregion
 
         #region Fields
+
+        public Profile[] All = [];
+        private Profile Current = new();
+
         public ModViewModel? Selected = null;
-        private ModCollection Enabled { get; set; } = [];
-        private ModCollection Disabled { get; set; } = [];
-        private TagViewModel[] Tags { get; set; } = [];
+        private ModCollection Enabled = [];
+        private ModCollection Disabled = [];
+
         #endregion
 
         public ModManager()
@@ -58,17 +66,25 @@ namespace MarvelRivalManager.UI.Pages
 
             m_environment.Refresh();
 
-            var mods = (await m_query.AllFilepaths(true))
-                .Select((filepath, index) => new ModViewModel(index + 1, filepath))
-                .OrderBy(mod => mod.Metadata.Order)
-                .ThenBy(mod => mod.Metadata.Name)
-                .ToArray();
+            // Load the current profile
+            if (m_environment is AppEnvironment environment)
+            {
+                ProfileCommandBar.Visibility = environment.Options.UseMultipleProfiles ? Visibility.Visible : Visibility.Collapsed;
 
-            Enabled = new ModCollection(mods.Where(x => x.Metadata.Enabled));
-            Disabled = new ModCollection(mods.Where(x => !x.Metadata.Enabled));
+                if (!Directory.Exists(environment.Folders.Collections))
+                {
+                    m_environment.Folders.Collections = environment.Default().Folders.Collections;
+                    environment.Update(m_environment);
+                }
+
+                Current = await m_profiles.GetCurrent();
+                All = await m_profiles.All(true);
+
+                ProfileCombobox.ItemsSource = All;
+                ProfileCombobox.SelectedItem = All.FirstOrDefault(x => x.Metadata.Active);
+            }
 
             IsLoading(false);
-            Refresh();
 
             if (Selected is null)
                 RefreshTags();
@@ -85,39 +101,108 @@ namespace MarvelRivalManager.UI.Pages
         /// <summary>
         ///     Event that filter the mods lists
         /// </summary>
-        private void FilterTags_SelectionChanged(ItemsView _, ItemsViewSelectionChangedEventArgs __)
+        private void FilterTags_OnSelectionChange(object _, Components.MultipleTagEventArg __)
         {
             Refresh();
         }
 
-        #region Collections
+        #region Profiles
 
         /// <summary>
-        ///     Event when the user drop items onto the collection
+        ///     Event when the user change the current profile
         /// </summary>
-        private async void CollectionLoaded(object _, RoutedEventArgs __)
+        private async void Profile_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // We only need to trigger this event when an mod is selected for edition
-            if (Selected is null)
+            if (e.AddedItems.FirstOrDefault() is not Profile selected)
                 return;
 
-            var collection = Selected.Metadata.Enabled ? EnabledModsList : DisabledModsList;
-            collection.ScrollIntoView(Selected, ScrollIntoViewAlignment.Default);
-            collection.UpdateLayout();
+            IsLoading(true);
 
-            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
-            if (animation is not null)
+            // Same profile to load
+            if (!selected.Name.Equals(Current.Name))
             {
-                if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
-                {
-                    animation.Configuration = new DirectConnectedAnimationConfiguration();
-                }
-
-                await collection.TryStartConnectedAnimationAsync(animation, Selected, "ConnectedElement");
+                // Update the current profile
+                Current.Metadata.Active = false;
+                await m_profiles.Update(Current);
             }
 
-            collection.Focus(FocusState.Programmatic);
+            // Load the profile
+            await m_profiles.Load(selected);
+            Current = selected;
+
+            // Reload mod lists
+            var mods = (await m_query.AllFilepaths(true))
+                .Select((filepath, index) => new ModViewModel(index + 1, filepath))
+                .OrderBy(mod => mod.Metadata.Order)
+                .ThenBy(mod => mod.Metadata.Name)
+                .ToArray();
+
+            Enabled = new ModCollection(mods.Where(x => x.Metadata.Enabled));
+            Disabled = new ModCollection(mods.Where(x => !x.Metadata.Enabled));
+
+            Refresh();
+            RefreshTags();
+
+            IsLoading(false);
         }
+
+        /// <summary>
+        ///     Event to add a new profile
+        /// </summary>
+        private async void ProfileAdd(object sender, RoutedEventArgs e)
+        {
+            IsLoading(true);
+
+            var dialog = new TextInputDialog
+            {
+                XamlRoot = XamlRoot,
+                Title = "Enter the profile name",
+                PrimaryButtonText = "Add",
+            };
+
+            var result = await dialog.ShowAsync();
+            var value = dialog.GetInput();
+
+            if (result == ContentDialogResult.Primary && !string.IsNullOrEmpty(value))
+            {
+                // Create the new profile
+                var created = await m_profiles.Create(value, []);
+                var all = await m_profiles.All();
+                var selected = all.First(profile => profile.Name.Equals(created.Name));
+
+                // Reload the profiles combobox
+                ProfileCombobox.ItemsSource = all;
+                ProfileCombobox.SelectedItem = selected;
+            }
+
+            IsLoading(false);
+        }
+
+        /// <summary>
+        ///     Event to delete the current profile
+        /// </summary>
+        private async void ProfileDelete(object sender, RoutedEventArgs e)
+        {
+            IsLoading(true);
+
+            // Delete the current profile
+            await m_profiles.Delete(Current);
+
+            // Load other profile
+            All = await m_profiles.All(true);
+            if (All.Length == 0) All = [Current];
+            Current = await m_profiles.GetCurrent();
+
+            // Reload the profiles combobox
+            ProfileCombobox.ItemsSource = All;
+            ProfileCombobox.SelectedItem = Current;
+
+            IsLoading(false);
+        }
+
+        #endregion
+
+        #region Command Bar
 
         /// <summary>
         ///     Event to add a new mod to the collection
@@ -152,115 +237,13 @@ namespace MarvelRivalManager.UI.Pages
                 collection.Add(new ModViewModel(collection.Count + 1, mod.File.Filepath));
             }
 
+            UpdateProfile();
+
             IsLoading(false);
 
             Refresh();
             RefreshTags();
             button.IsEnabled = true;
-        }
-
-        /// <summary>
-        ///     Event to delete a mod from the collection
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void CollectionMoveSingle(object sender, RoutedEventArgs _)
-        {
-            if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
-                return;
-
-            var source = mod.Metadata.Enabled ? Enabled : Disabled;
-            var target = mod.Metadata.Enabled ? Disabled : Enabled;
-
-            IsLoading(true);
-
-            var (edited, success) = await Move(mod, target.Count + 1);
-            if (success)
-            {
-                source.Remove(mod);
-                target.Add(edited);
-            }
-
-            IsLoading(false);
-
-            Refresh();
-        }
-
-        /// <summary>
-        ///     Event to add a new mod to the collection
-        /// </summary>
-        private void CollectionRemove(object sender, RoutedEventArgs _)
-        {
-            if (sender is not Button button)
-                return;
-
-            var reload = false;
-
-            IsLoading(true);
-
-            foreach (var mod in EnabledModsList.SelectedItems
-                .Concat(DisabledModsList.SelectedItems)
-                .Select(item =>
-                {
-                    if (item is not ModViewModel mod)
-                        return null;
-
-                    return mod;
-                })
-                .Where(item => item is not null)
-                .ToArray())
-            {
-                m_manager.Delete(mod!);
-                (mod!.Metadata.Enabled ? Enabled : Disabled).Remove(mod!);
-                reload = true;
-            }
-
-            IsLoading(false);
-
-            if (reload)
-            {
-                Refresh();
-                RefreshTags();
-            }
-
-            button.IsEnabled = true;
-        }
-
-        /// <summary>
-        ///     Event to delete a mod from the collection
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void CollectionDeleteSingle(object sender, RoutedEventArgs _)
-        {
-            if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
-                return;
-
-            IsLoading(true);
-
-            var collection = mod.Metadata.Enabled ? Enabled : Disabled;
-            m_manager.Delete(mod);
-            collection.Remove(mod);
-
-            Refresh();
-            RefreshTags();
-            IsLoading(false);
-        }
-
-        /// <summary>
-        ///     Event when a mod element is clicked
-        /// </summary>
-        private void CollectionEditSingle(object sender, RoutedEventArgs _)
-        {
-            if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
-                return;
-
-            Selected = mod;
-
-            (mod.Metadata.Enabled ? EnabledModsList : DisabledModsList)
-                .PrepareConnectedAnimation("ForwardConnectedAnimation", Selected, "ConnectedElement");
-
-            Frame.Navigate(typeof(ModView), Selected, new SuppressNavigationTransitionInfo());
         }
 
         /// <summary>
@@ -275,16 +258,8 @@ namespace MarvelRivalManager.UI.Pages
 
             IsLoading(true);
 
-            foreach (var mod in EnabledModsList.SelectedItems
-                .Concat(DisabledModsList.SelectedItems)
-                .Select(item =>
-                {
-                    if (item is not ModViewModel mod)
-                        return null;
-
-                    return mod;
-                })
-                .Where(item => item is not null)
+            foreach (var mod in EnabledModsList.GetSelected()
+                .Concat(DisabledModsList.GetSelected())
                 .ToArray())
             {
                 await m_manager.Evaluate(mod!);
@@ -303,104 +278,152 @@ namespace MarvelRivalManager.UI.Pages
         }
 
         /// <summary>
-        ///     Event when a mod is evaluated via the unpacker
+        ///     Event to add a new mod to the collection
         /// </summary>
-        private async void CollectionEvaluateSingle(object sender, RoutedEventArgs _)
+        private void CollectionRemove(object sender, RoutedEventArgs _)
         {
-            if (sender is not FrameworkElement element || element.DataContext is not ModViewModel mod)
+            if (sender is not Button button)
                 return;
+
+            var reload = false;
 
             IsLoading(true);
 
-            await m_manager.Evaluate(mod);
+            foreach (var mod in EnabledModsList.GetSelected()
+                .Concat(DisabledModsList.GetSelected())
+                .ToArray())
+            {
+                m_manager.Delete(mod!);
+                (mod!.Metadata.Enabled ? Enabled : Disabled).Remove(mod!);
+                reload = true;
+            }
+
+            IsLoading(false);
+
+            if (reload)
+            {
+                UpdateProfile();
+                Refresh();
+                RefreshTags();
+            }
+
+            button.IsEnabled = true;
+        }
+
+        #endregion
+
+        #region Collections
+
+        /// <summary>
+        ///     Event when the user drop items onto the collection
+        /// </summary>
+        private async void ModCollection_OnCollectionLoaded(object _, RoutedEventArgs __)
+        {
+            // We only need to trigger this event when an mod is selected for edition
+            if (Selected is null)
+                return;
+
+            var collection = (Selected.Metadata.Enabled ? EnabledModsList : DisabledModsList).View();
+            collection.ScrollIntoView(Selected, ScrollIntoViewAlignment.Default);
+            collection.UpdateLayout();
+
+            var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("BackConnectedAnimation");
+            if (animation is not null)
+            {
+                if (ApiInformation.IsApiContractPresent("Windows.Foundation.UniversalApiContract", 7))
+                {
+                    animation.Configuration = new DirectConnectedAnimationConfiguration();
+                }
+
+                await collection.TryStartConnectedAnimationAsync(animation, Selected, "ConnectedElement");
+            }
+
+            collection.Focus(FocusState.Programmatic);
+        }
+
+        /// <summary>
+        ///     Event to delete a mod from the collection
+        /// </summary>
+        private async void ModCollection_OnMove(object sender, Components.SingleModEventArg e)
+        {
+            var source = e.Mod.Metadata.Enabled ? Enabled : Disabled;
+            var target = e.Mod.Metadata.Enabled ? Disabled : Enabled;
+
+            IsLoading(true);
+
+            var (edited, success) = await Move(e.Mod, target.Count + 1);
+            if (success)
+            {
+                source.Remove(e.Mod);
+                target.Add(edited);
+            }
+
+            UpdateProfile();
+            IsLoading(false);
+
+            Refresh();
+        }
+
+        /// <summary>
+        ///     Event when a mod element is clicked
+        /// </summary>
+        private void ModCollection_OnEdit(object _, Components.SingleModEventArg e)
+        {
+            Selected = e.Mod;
+
+            (e.Mod.Metadata.Enabled ? EnabledModsList : DisabledModsList).View()
+                .PrepareConnectedAnimation("ForwardConnectedAnimation", Selected, "ConnectedElement");
+
+            Frame.Navigate(typeof(ModView), Selected, new SuppressNavigationTransitionInfo());
+        }
+
+        /// <summary>
+        ///     Event when a mod is evaluated via the unpacker
+        /// </summary>
+        private async void ModCollection_OnEvaluate(object _, Components.SingleModEventArg e)
+        {
+            IsLoading(true);
+
+            await m_manager.Evaluate(e.Mod);
 
             Refresh();
             RefreshTags();
             IsLoading(false);
         }
 
-        #region Drag and Drop
-
         /// <summary>
-        ///     Event when the user start dragging items
+        ///     Event to delete a mod from the collection
         /// </summary>
-        private void CollectionDragStarting(object _, DragItemsStartingEventArgs e)
+        private void ModCollection_OnDelete(object _, Components.SingleModEventArg e)
         {
-            if (e.Items.Count == 0)
-            {
-                e.Data.RequestedOperation = DataPackageOperation.None;
-                e.Cancel = true;
-                return;
-            }
+            IsLoading(true);
 
-            var package = new StringBuilder();
-            foreach (var item in (e.Items ?? [])
-                .Select(item =>
-                {
-                    if (item is not null && item is ModViewModel mod && mod is not null)
-                        return mod;
+            var collection = e.Mod.Metadata.Enabled ? Enabled : Disabled;
+            m_manager.Delete(e.Mod);
+            collection.Remove(e.Mod);
 
-                    return null;
-                })
-                .Where(item => item is not null)
-            )
-            {
-                package.AppendFormat("{0},", item!.Index);
-            }
-
-            e.Data.SetText(package.ToString().TrimEnd(','));
-            e.Data.RequestedOperation = DataPackageOperation.Move;
-        }
-
-        /// <summary>
-        ///     Event when the user drag over items
-        /// </summary>
-        private void CollectionDragOver(object _, DragEventArgs e)
-        {
-            e.AcceptedOperation = DataPackageOperation.Move;
+            UpdateProfile();
+            Refresh();
+            RefreshTags();
+            IsLoading(false);
         }
 
         /// <summary>
         ///     Event when the user drop items onto the collection
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void CollectionDrop(object sender, DragEventArgs e)
+        private async void ModCollection_OnDropItems(object sender, Components.DropModEventArg e)
         {
-            if (sender is not ListView target
-                || !e.DataView.Contains(StandardDataFormats.Text)
-                || (target.Name == EnabledModsList.Name ? Disabled : Enabled) is not ModCollection source
-                || (target.Name == EnabledModsList.Name ? Enabled : Disabled) is not ModCollection destination)
+            if (sender is not FrameworkElement target)
                 return;
 
-            var operation = e.GetDeferral();
-            var raw = (await e.DataView.GetTextAsync() ?? string.Empty);
+            var source = target.Name == EnabledModsList.Name ? Disabled : Enabled;
+            var destination = target.Name == EnabledModsList.Name ? Enabled : Disabled;
 
-            if (raw
-                .Split(',')
-                .Select(index =>
-                {
-                    if (!int.TryParse(index, out var value))
-                        return null;
-
-                    return source.First(x => x.Index == value);
-                })
-                .Where(mod => mod is not null)
-                .ToArray() is not ModViewModel[] items || items.Length == 0)
-            {
-                operation.Complete();
+            var items = e.Indexes.Select(index => source.First(x => x.Index == index)).ToArray();
+            if (items.Length == 0)
                 return;
-            }
 
             IsLoading(true);
-
-            // Calculate the insertion index
-            var index = 0;
-            if (target.Items.Count != 0 && target.ContainerFromIndex(0) is ListViewItem pivot)
-            {
-                var height = pivot.ActualHeight + pivot.Margin.Top + pivot.Margin.Bottom;
-                index = Math.Min(target.Items.Count - 1, (int)(e.GetPosition(target.ItemsPanelRoot).Y / height));
-            }
 
             var moved = new ConcurrentBag<(ModViewModel original, ModViewModel edited, bool success)>();
             var last = destination.Count == 0 ? 0 : destination.Max(mod => mod.Index);
@@ -414,19 +437,15 @@ namespace MarvelRivalManager.UI.Pages
                 if (success)
                 {
                     source.Remove(item);
-                    destination.Insert(index, edited);
+                    destination.Insert(e.Position, edited);
                 }
             }
 
-            e.AcceptedOperation = DataPackageOperation.Move;
-            operation.Complete();
-
+            UpdateProfile();
             IsLoading(false);
 
             Refresh();
         }
-
-        #endregion
 
         #endregion
 
@@ -446,6 +465,15 @@ namespace MarvelRivalManager.UI.Pages
         }
 
         /// <summary>
+        ///     Update the current profile
+        /// </summary>
+        private async void UpdateProfile()
+        {
+            Current.Metadata.Selected = Enabled.Select(mod => mod.File.Filename).ToArray();
+            Current = await m_profiles.Update(Current);
+        }
+
+        /// <summary>
         ///     Event that filter the mods lists
         /// </summary>
         private void Refresh()
@@ -453,16 +481,10 @@ namespace MarvelRivalManager.UI.Pages
             var enabled = Enabled.Select(mod => mod);
             var disabled = Disabled.Select(mod => mod);
 
-            if (FilterTags.SelectedItems.Count > 0)
+            var tags = FilterTags.GetSelected();
+            if (tags.Length > 0)
             {
-                var filterTag = FilterTags.SelectedItems
-                    .Select(tag => tag as TagViewModel)
-                    .Where(tag => tag is not null)
-                    .Select(tag => tag?.Value ?? string.Empty)
-                    .Where(tag => !string.IsNullOrEmpty(tag))
-                    .ToArray()
-                    ;
-
+                var filterTag = tags.Select(tag => tag.Value).ToArray();
                 enabled = enabled.Where(mod => filterTag.All(tag => mod.AllTags.Contains(tag)));
                 disabled = disabled.Where(mod => filterTag.All(tag => mod.AllTags.Contains(tag)));
             }
@@ -480,8 +502,8 @@ namespace MarvelRivalManager.UI.Pages
                 );
             }
 
-            EnabledModsList.ItemsSource = new ModCollection(enabled);
-            DisabledModsList.ItemsSource = new ModCollection(disabled);            
+            EnabledModsList.Load(new ModCollection(enabled));
+            DisabledModsList.Load(new ModCollection(disabled));
         }
 
         /// <summary>
@@ -489,17 +511,7 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private void RefreshTags()
         {
-            Tags = Enabled.Concat(Disabled)
-                .Select(mod => (mod.Metadata.Tags ?? []).Concat(mod.Metadata.SystemTags ?? []))
-                .SelectMany(tags => tags)
-                .Where(tag => !string.IsNullOrEmpty(tag))
-                .Distinct()
-                .OrderBy(tag => tag)
-                .Select(tag => new TagViewModel(tag.Trim()))
-                .ToArray()
-                ;
-
-            FilterTags.ItemsSource = Tags;
+            FilterTags.Load(Enabled.Concat(Disabled).ToArray());
         }
 
         /// <summary>
