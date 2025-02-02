@@ -4,28 +4,29 @@ using Windows.Storage;
 namespace MarvelRivalManager.UI.Helper
 {
     /// <summary>
-    /// Class providing functionality around switching and restoring theme settings
+    ///     Class providing functionality around switching and restoring theme settings
     /// </summary>
     public static class ThemeHelper
     {
+        #region Constants
+
         private const string SelectedAppThemeKey = "SelectedAppTheme";
 
+        #endregion
+
         /// <summary>
-        /// Gets the current actual theme of the app based on the requested theme of the
-        /// root element, or if that value is Default, the requested theme of the Application.
+        ///     Gets the current actual theme of the app based on the requested theme of the
+        ///     root element, or if that value is Default, the requested theme of the Application.
         /// </summary>
         public static ElementTheme ActualTheme
         {
             get
             {
-                foreach (Window window in WindowHelper.ActiveWindows)
+                foreach (var window in WindowHelper.ActiveWindows)
                 {
-                    if (window.Content is FrameworkElement rootElement)
+                    if (window.Content is FrameworkElement rootElement && rootElement.RequestedTheme != ElementTheme.Default)
                     {
-                        if (rootElement.RequestedTheme != ElementTheme.Default)
-                        {
-                            return rootElement.RequestedTheme;
-                        }
+                        return rootElement.RequestedTheme;
                     }
                 }
 
@@ -34,7 +35,7 @@ namespace MarvelRivalManager.UI.Helper
         }
 
         /// <summary>
-        /// Gets or sets (with LocalSettings persistence) the RequestedTheme of the root element.
+        ///     Gets or sets (with LocalSettings persistence) the RequestedTheme of the root element.
         /// </summary>
         public static ElementTheme RootTheme
         {
@@ -67,6 +68,9 @@ namespace MarvelRivalManager.UI.Helper
             }
         }
 
+        /// <summary>
+        ///     Initialize the theme settings
+        /// </summary>
         public static void Initialize()
         {
             if (NativeHelper.IsAppPackaged)
@@ -80,6 +84,9 @@ namespace MarvelRivalManager.UI.Helper
             }
         }
 
+        /// <summary>
+        ///     Update the theme settings
+        /// </summary>
         public static void Update(ElementTheme next)
         {
             if (NativeHelper.IsAppPackaged)

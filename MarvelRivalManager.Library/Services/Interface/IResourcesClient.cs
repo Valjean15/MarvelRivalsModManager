@@ -10,11 +10,11 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
          ///     Delete the resource for repacker
          /// </summary>
-        public ValueTask<bool> Delete(PrintAndUndo informer);
+        public ValueTask<bool> Delete(Log informer);
 
         /// <summary>
         ///     Download a resource for repacker
         /// </summary>
-        public ValueTask<bool> Download(PrintAndUndo informer, CancellationToken? cancellationToken = null);
+        public ValueTask<bool> Download(Log informer, CancellationToken? cancellationToken = null);
     }
 }

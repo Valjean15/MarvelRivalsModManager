@@ -21,16 +21,16 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
         ///     Unpack the mods into the extraction folder
         /// </summary>
-        ValueTask<bool> Unpack(Print informer);
+        ValueTask<bool> Unpack(Log informer);
 
         /// <summary>
         ///     Get the folder of the unpacked mods
         /// </summary>
-        ValueTask<string> GetUnpackedFolder(Print? informer = null);
+        ValueTask<string> GetUnpackedFolder(Log? informer = null);
 
         /// <summary>
         ///     Get the file (packed) of the unpacked mods
         /// </summary>
-        ValueTask<string[]> Pack(Print informer);
+        ValueTask<string[]> Pack(Log informer);
     }
 }

@@ -6,41 +6,42 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:component="using:MarvelRivalManager.UI.Components"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"    
 >
     <ScrollView>
         <StackPanel Spacing="20" Margin="10">
             
             <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Game" FontSize="18"/>
+                <TextBlock Text="{x:Bind common:Localization.GAME}" FontSize="18"/>
                 <component:FileInput
-                    Label="Content folder" 
+                    Label="{x:Bind common:Localization.CONTENT_FOLDER}" 
                     OnChange="Update"
                     Value="{x:Bind m_environment.Folders.GameContent, Mode=TwoWay}" />
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Mods directories" FontSize="18"/>
+                <TextBlock Text="{x:Bind common:Localization.MODS_DIRECTORY}" FontSize="18"/>
                 <component:FileInput 
-                    Label="Enabled" 
+                    Label="{x:Bind common:Localization.ENABLED}" 
                     OnChange="Update"
                     Value="{x:Bind m_environment.Folders.ModsEnabled, Mode=TwoWay}" />
                 <component:FileInput 
-                    Label="Disabled" 
+                    Label="{x:Bind common:Localization.DISABLED}" 
                     OnChange="Update"
                     Value="{x:Bind m_environment.Folders.ModsDisabled, Mode=TwoWay}" />
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Packer" FontSize="18"/>
+                <TextBlock Text="{x:Bind common:Localization.PACKER}" FontSize="18"/>
                 <component:FileInput 
-                    Label="Executable folder" 
+                    Label="{x:Bind common:Localization.EXECUTABLE_FOLDER}" 
                     OnChange="Update"
                     Value="{x:Bind m_environment.Folders.RepackFolder, Mode=TwoWay}" />
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5" Visibility="{x:Bind CanChangeTheme, Mode=OneWay}">
-                <TextBlock Text="Theme" FontSize="18"/>
+                <TextBlock Text="{x:Bind common:Localization.THEME}" FontSize="18"/>
                 <Button x:Name="ToggleThemeButton"
                     MinWidth="300"
                     Content="{x:Bind SelectedTheme, Mode=OneWay}"
@@ -48,37 +49,37 @@
             </StackPanel>
 
             <StackPanel Spacing="15" Margin="5">
-                <TextBlock Text="Options" FontSize="18"/>
+                <TextBlock Text="{x:Bind common:Localization.OPTIONS}" FontSize="18"/>
 
                 <ToggleButton 
                     MinWidth="300"
-                    Content="Multiple mods profiles" 
+                    Content="{x:Bind common:Localization.MULTIPLE_MODS_PROFILE}" 
                     Click="ToggleButton_Click"
                     IsChecked="{x:Bind m_environment.Options.UseMultipleProfiles, Mode=TwoWay}" />
                 
                 <ToggleButton 
                     MinWidth="300"
-                    Content="Deploy on separate files"
+                    Content="{x:Bind common:Localization.DEPLOY_ON_SEPARATE_FILES}"
                     Click="ToggleButton_Click"
                     IsChecked="{x:Bind m_environment.Options.DeployOnSeparateFile, Mode=TwoWay}" />
 
                 <ToggleButton 
                     MinWidth="300"
-                    Content="Evaluate mod when toggle (enable/disable)" 
+                    Content="{x:Bind common:Localization.EVALUATE_ON_UPDATE}" 
                     Click="ToggleButton_Click"
                     IsChecked="{x:Bind m_environment.Options.EvaluateOnUpdate, Mode=TwoWay}" />
 
                 <ToggleButton 
                     MinWidth="300"
-                    Content="Ignore the packer tool" 
+                    Content="{x:Bind common:Localization.IGNORE_PACKER_TOOL}" 
                     Click="ToggleButton_Click"
                     IsChecked="{x:Bind m_environment.Options.IgnorePackerTool, Mode=TwoWay}" />
 
                 <ToggleButton 
                     MinWidth="300"
-                    Content="(Experimental) Use parallel proccesing" 
+                    Content="{x:Bind common:Localization.USE_SINGLE_THREAD}" 
                     Click="ToggleButton_Click"
-                    IsChecked="{x:Bind m_environment.Options.UseParallelLoops, Mode=TwoWay}" />
+                    IsChecked="{x:Bind m_environment.Options.UseSingleThread, Mode=TwoWay}" />
 
             </StackPanel>
         </StackPanel>

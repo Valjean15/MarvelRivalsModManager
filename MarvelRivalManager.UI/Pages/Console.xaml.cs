@@ -1,10 +1,16 @@
+using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
+using MarvelRivalManager.UI.Common;
+using MarvelRivalManager.UI.Helper;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+
+using static MarvelRivalManager.Library.Entities.Delegates;
 
 namespace MarvelRivalManager.UI.Pages
 {
@@ -17,7 +23,6 @@ namespace MarvelRivalManager.UI.Pages
         private readonly IEnvironment m_environment = Services.Get<IEnvironment>();
         private readonly IRepack m_unpacker = Services.Get<IRepack>();
         private readonly IPatcher m_patcher = Services.Get<IPatcher>();
-        private readonly IModManager m_manager = Services.Get<IModManager>();
         private readonly IResourcesClient m_resources = Services.Get<IResourcesClient>();
         #endregion
 
@@ -40,31 +45,26 @@ namespace MarvelRivalManager.UI.Pages
 
         private async void PatchButton_Click(object _, RoutedEventArgs __)
         {
-            IsLoading(true);
-            if (await m_unpacker.Unpack(Print))
-                await m_patcher.Patch(Print);
-            IsLoading(false);
+            await Do(async () =>
+            {
+                if (await m_unpacker.Unpack(Print))
+                    await m_patcher.Patch(Print);
+            });
         }
 
         private async void UnpatchButton_Click(object _, RoutedEventArgs __)
         {
-            IsLoading(true);
-            await m_patcher.Unpatch(Print);
-            IsLoading(false);
+            await Do(async () => await m_patcher.Unpatch(Print));
         }
 
         private async void DownloadButton_Click(object _, RoutedEventArgs __)
         {
-            IsLoading(true);
-            await m_resources.Download(Print);
-            IsLoading(false);
+            await Do(async () => await m_resources.Download(Print));
         }
 
         private async void DeleteDownloadButton_Click(object _, RoutedEventArgs __)
         {
-            IsLoading(true);
-            await m_resources.Delete(Print);
-            IsLoading(false);
+            await Do(async () => await m_resources.Delete(Print));
         }
 
         private void ClearButton_Click(object _, RoutedEventArgs __)
@@ -79,43 +79,48 @@ namespace MarvelRivalManager.UI.Pages
 
         #region Private Methods
 
-        private async ValueTask Print(string message)
+        /// <summary>
+        ///     Execute the action and show the loading indicator
+        /// </summary>
+        private async ValueTask Do(AsyncAction action)
         {
-            await Print(message, false);
+            IsLoading(true);
+            await action();
+            IsLoading(false);
         }
 
-        private async ValueTask Print(string message, bool undoLast)
+        /// <summary>
+        ///    Print a message in the console
+        /// </summary>
+        private async ValueTask Print(string[] keys, PrintParams @params)
         {
             lock (_lock)
             {
-                if (undoLast && !Logs.IsEmpty)
+                if (@params.UndoLast && !Logs.IsEmpty)
                     Logs.TryPop(out _);
 
-                Logs.Push(message);
+                Logs.Push(LogMessages.Get(keys, @params));
             }
 
-            await Task.Run(() =>
+            await this.TryEnqueueAsync(() =>
             {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    try
-                    {
-                        Ouput.IsReadOnly = false;
-                        Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), string.Join(System.Environment.NewLine, Logs));
-                        Ouput.IsReadOnly = true;
-                    }
-                    catch
-                    {
-                        // Left blank intentionally
-                    }
-                });
+                Ouput.IsReadOnly = false;
+                Ouput.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), string.Join(System.Environment.NewLine, Logs));
+                Ouput.IsReadOnly = true;
             });
         }
 
-        private void IsLoading(bool loading)
+        /// <summary>
+        ///    Show the loading indicator
+        /// </summary>
+        /// <param name="loading"></param>
+        private async void IsLoading(bool loading)
         {
-            IsInProgress.IsIndeterminate = loading;
-            IsInProgress.Value = loading ? 0 : 100;
+            await this.TryEnqueueAsync(() =>
+            {
+                IsInProgress.IsIndeterminate = loading;
+                IsInProgress.Value = loading ? 0 : 100;
+            });
         }
 
         #endregion

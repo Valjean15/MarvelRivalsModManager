@@ -15,12 +15,6 @@ namespace MarvelRivalManager.UI.Components
     /// </summary>
     public sealed partial class FileInput : UserControl
     {
-        #region Constants
-
-        private const string ACTIVITY_ID = "FolderPickedNotificationId";
-
-        #endregion
-
         #region Handlers
 
         /// <summary>
@@ -108,7 +102,6 @@ namespace MarvelRivalManager.UI.Components
             }
 
             button.IsEnabled = true;
-            UIHelper.AnnounceActionForAccessibility(button, Selected.Text, ACTIVITY_ID);
         }
 
         #endregion

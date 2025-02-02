@@ -6,6 +6,7 @@
     xmlns:local="using:MarvelRivalManager.UI.Components"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"
 >
 
@@ -26,7 +27,7 @@
 
         <Button x:Name="Button"
             Click="PickFolderButton_Click"
-            Content="Select folder"
+            Content="{x:Bind common:Localization.SELECT_FOLDER}"
         />
     </StackPanel>
 </UserControl>

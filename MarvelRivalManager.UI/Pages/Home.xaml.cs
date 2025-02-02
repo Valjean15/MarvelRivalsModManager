@@ -1,3 +1,4 @@
+using MarvelRivalManager.UI.Common;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -18,9 +19,9 @@ namespace MarvelRivalManager.UI.Pages
         private static string PageNamespace => Settings.Namespace!;
         private static readonly Dictionary<string, string> PageNames = new()
         {
-            { Settings.Name, "Settings" },
-            { typeof(ModManager).Name, "Mods" },
-            { typeof(Console).Name, "Actions" },
+            { Settings.Name, Localization.TAB_SETTINGS },
+            { typeof(ModManager).Name, Localization.TAB_MANAGER },
+            { typeof(Console).Name, Localization.TAB_ACTIONS },
         };
         #endregion
 

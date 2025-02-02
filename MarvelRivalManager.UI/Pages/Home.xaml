@@ -7,7 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="Home"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
+    Title="{x:Bind common:Localization.HOME}"
 >
     
     <NavigationView 
@@ -16,7 +17,7 @@
         IsBackButtonVisible="Collapsed"
         SelectionFollowsFocus="Enabled"
         SelectionChanged="NavigationView_SelectionChanged"
-        Header="Marvel Rivals - Mods Manager"
+        Header="{x:Bind common:Localization.TAB_MANAGER}"
         AlwaysShowHeader="True"
     >
         <NavigationView.MenuItems>

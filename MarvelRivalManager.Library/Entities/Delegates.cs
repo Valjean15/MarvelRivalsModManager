@@ -2,7 +2,14 @@
 {
     public class Delegates
     {
-        public delegate ValueTask Print(string message);
-        public delegate ValueTask PrintAndUndo(string message, bool undoLast);
+        public delegate ValueTask AsyncAction();
+        public delegate ValueTask Log(string[] codes, PrintParams @params);
     }
+    
+    public record struct PrintParams(
+        string Action,
+        string Time = "",
+        string Name = "",
+        bool UndoLast = false
+    );
 }

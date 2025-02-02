@@ -8,6 +8,12 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IEnvironment.Refresh"/>
         public abstract IEnvironment Refresh();
 
+        /// <see cref="IEnvironment.Update(IEnvironment)"/>
+        public abstract void Update(IEnvironment values);
+
+        /// <see cref="IEnvironment.Update(IEnvironment)"/>
+        public abstract IEnvironment Default();
+
         /// <see cref="IEnvironment.Folders"/>"/>
         public Folders Folders { get; set; } = new();
 

@@ -1,4 +1,3 @@
-using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 using MarvelRivalManager.UI.Helper;

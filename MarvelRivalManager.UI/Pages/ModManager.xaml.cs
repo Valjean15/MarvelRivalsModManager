@@ -1,6 +1,7 @@
 using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
+using MarvelRivalManager.UI.Common;
 using MarvelRivalManager.UI.Configuration;
 using MarvelRivalManager.UI.Helper;
 using MarvelRivalManager.UI.Pages.Dialogs;
@@ -8,7 +9,6 @@ using MarvelRivalManager.UI.ViewModels;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -156,8 +156,8 @@ namespace MarvelRivalManager.UI.Pages
             var dialog = new TextInputDialog
             {
                 XamlRoot = XamlRoot,
-                Title = "Enter the profile name",
-                PrimaryButtonText = "Add",
+                Title = Localization.ENTER_PROFILE_NAME,
+                PrimaryButtonText = Localization.ADD,
             };
 
             var result = await dialog.ShowAsync();

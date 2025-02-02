@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:component="using:MarvelRivalManager.UI.Components"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"
     
     Loaded="Page_Loaded"
@@ -15,13 +16,12 @@
         <StackPanel>
 
             <StackPanel x:Name="ProfileCommandBar" Orientation="Horizontal" Spacing="10" Padding="20,0,0,0">
-                <TextBlock Text="Profile" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Bind common:Localization.PROFILE}" VerticalAlignment="Center" />
                 <ComboBox x:Name="ProfileCombobox" VerticalAlignment="Center"
                     DisplayMemberPath="Name" 
                     SelectedValuePath="Filepath"
                     Width="200" 
                     SelectionChanged="Profile_SelectionChanged"/>
-
                 <SplitButton x:Name="myListButton" VerticalAlignment="Center">
                     <FontIcon Glyph="&#xE712;" />
                     <SplitButton.Flyout>
@@ -29,23 +29,22 @@
                             <MenuFlyoutItem
                                 Click="ProfileAdd"
                                 Icon="Add" 
-                                Text="Add"/>
+                                Text="{x:Bind common:Localization.ADD}"/>
                             <MenuFlyoutItem
                                 Click="ProfileDelete"
                                 Icon="Delete" 
-                                Text="Delete"/>
+                                Text="{x:Bind common:Localization.DELETE}"/>
                         </MenuFlyout>
                     </SplitButton.Flyout>
                 </SplitButton>
-
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
                 <CommandBar IsOpen="False" DefaultLabelPosition="Right" IsSticky="True" HorizontalAlignment="Left">
-                    <AppBarButton Icon="Add" Label="Add" Click="CollectionAdd"/>
-                    <AppBarButton Icon="Orientation" Label="Evaluate" Click="CollectionEvaluate"/>
+                    <AppBarButton Icon="Add" Label="{x:Bind common:Localization.ADD}" Click="CollectionAdd"/>
+                    <AppBarButton Icon="Orientation" Label="{x:Bind common:Localization.EVALUATE}" Click="CollectionEvaluate"/>
                     <AppBarSeparator />
-                    <AppBarButton Icon="Delete" Label="Delete" Click="CollectionRemove"/>
+                    <AppBarButton Icon="Delete" Label="{x:Bind common:Localization.DELETE}" Click="CollectionRemove"/>
                 </CommandBar>
                 <TextBox x:Name="Filter" Margin="8" TextChanged="OnFilterChanged" Width="500"/>
             </StackPanel>
@@ -67,7 +66,7 @@
                 </Grid.ColumnDefinitions>
 
                 <component:ModCollection x:Name="EnabledModsList" Grid.Column="0" Grid.Row="0" Margin="15"
-                    Title="Enabled"
+                    Title="{x:Bind common:Localization.ENABLED}"
                     OnCollectionLoaded="ModCollection_OnCollectionLoaded"
                     OnMove="ModCollection_OnMove"
                     OnEdit="ModCollection_OnEdit"
@@ -77,7 +76,7 @@
                     />
 
                 <component:ModCollection x:Name="DisabledModsList" Grid.Column="1" Grid.Row="0" Margin="15"
-                    Title="Disabled"
+                    Title="{x:Bind common:Localization.DISABLED}"
                     OnCollectionLoaded="ModCollection_OnCollectionLoaded"
                     OnMove="ModCollection_OnMove"
                     OnEdit="ModCollection_OnEdit"

@@ -30,12 +30,12 @@
         >
             <ItemsView.Layout>
                 <UniformGridLayout  
-                ItemsStretch="Fill"
-                ItemsJustification="Start"
-                MaximumRowsOrColumns="9"
-                MinRowSpacing="5"
-                MinColumnSpacing="5"
-            />
+                    ItemsStretch="Fill"
+                    ItemsJustification="Start"
+                    MaximumRowsOrColumns="9"
+                    MinRowSpacing="5"
+                    MinColumnSpacing="5"
+                />
             </ItemsView.Layout>
         </ItemsView>
     </StackPanel>

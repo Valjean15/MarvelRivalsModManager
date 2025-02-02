@@ -10,11 +10,11 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
         ///    Patch the game with the mod content provided
         /// </summary>
-        ValueTask<bool> Patch(Print informer);
+        ValueTask<bool> Patch(Log informer);
 
         /// <summary>
         ///    Unpatch the game with the mod content provided
         /// </summary>
-        ValueTask<bool> Unpatch(Print informer);
+        ValueTask<bool> Unpatch(Log informer);
     }
 }

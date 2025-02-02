@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:component="using:MarvelRivalManager.UI.Components"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"
 >
     <ScrollView>
@@ -21,13 +22,13 @@
             <Grid Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" Spacing="20">
                     <Button x:Name="GoBackButton" 
-                        Content="Go Back" 
+                        Content="{x:Bind common:Localization.GO_BACK}" 
                         HorizontalAlignment="Left" 
                         VerticalAlignment="Top"
                         Click="BackButton_Click" 
                     />
                     <Button x:Name="SaveChanges" 
-                        Content="Save" 
+                        Content="{x:Bind common:Localization.SAVE}" 
                         HorizontalAlignment="Left" 
                         VerticalAlignment="Top"
                         Click="SaveChanges_Click" 
@@ -74,16 +75,16 @@
                         FontSize="20"
                         Margin="0,0,0,10"
                     />
-                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Status:" Value="{x:Bind Mod.Status, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.STATUS}" Value="{x:Bind Mod.Status, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
 
             <Grid Grid.Row="2" Margin="0,30">
                 <StackPanel>
-                    <TextBlock Text="Metadata" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,10"/>
+                    <TextBlock Text="{x:Bind common:Localization.METADATA}" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="0,0,0,10"/>
                     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" Margin="0,0,0,10">
-                        <TextBlock Text="Order:" FontSize="14" Margin="0,0,0,10" Width="100"/>
+                        <TextBlock Text="{x:Bind common:Localization.ORDER}" FontSize="14" Margin="0,0,0,10" Width="100"/>
                         <NumberBox
                             Width="300"
                             Value="{x:Bind Mod.Metadata.Order, Mode=TwoWay}"
@@ -94,7 +95,7 @@
                         />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" Margin="0,0,0,10">
-                        <TextBlock Text="Tags:" FontSize="14" Margin="0,0,0,10" Width="100"/>
+                        <TextBlock Text="{x:Bind common:Localization.TAGS}" FontSize="14" Margin="0,0,0,10" Width="100"/>
                         <TextBox 
                             Text="{x:Bind Mod.InputTags, Mode=TwoWay}"
                             FontSize="14"
@@ -102,30 +103,30 @@
                             Width="300"
                         />
                     </StackPanel>
-                    <component:ReadOnlyText Label="System Tags:" Value="{x:Bind Mod.SystemTags, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.SYSTEM_TAGS}" Value="{x:Bind Mod.SystemTags, Mode=OneWay}" />
                 </StackPanel>
             </Grid>
 
             <Grid Grid.Row="3" Margin="0,30">
                 <StackPanel>
-                    <TextBlock Text="File information" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,0,0,20"/>
-                    <component:ReadOnlyText Label="Filepath:" Value="{x:Bind Mod.File.Filepath, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Location:" Value="{x:Bind Mod.File.Location, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Extension:" Value="{x:Bind Mod.File.Extension, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind common:Localization.FILE_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,0,0,20"/>
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILE_PATH}" Value="{x:Bind Mod.File.Filepath, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.LOCATION}" Value="{x:Bind Mod.File.Location, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.EXTENSION}" Value="{x:Bind Mod.File.Extension, Mode=OneWay}" />
 
-                    <TextBlock Text="Profile File information" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
-                    <component:ReadOnlyText Label="Filepath:" Value="{x:Bind Mod.File.ProfileFilepath, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Filename:" Value="{x:Bind Mod.File.ProfileFilename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Location:" Value="{x:Bind Mod.File.ProfileLocation, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Extension:" Value="{x:Bind Mod.File.ProfileExtension, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind common:Localization.PROFILE_FILE_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILE_PATH}" Value="{x:Bind Mod.File.ProfileFilepath, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.ProfileFilename, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.LOCATION}" Value="{x:Bind Mod.File.ProfileLocation, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.EXTENSION}" Value="{x:Bind Mod.File.ProfileExtension, Mode=OneWay}" />
 
-                    <TextBlock Text="Extraction information" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
-                    <component:ReadOnlyText Label="Path:" Value="{x:Bind Mod.File.Extraction, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="Content:" Value="{x:Bind Mod.File.ExtractionContent, Mode=OneWay}" />
+                    <TextBlock Text="{x:Bind common:Localization.EXTRACTION_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.PATH}" Value="{x:Bind Mod.File.Extraction, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.CONTENT}" Value="{x:Bind Mod.File.ExtractionContent, Mode=OneWay}" />
 
                     <StackPanel Padding="0,50,30,0">
-                        <TextBlock Text="Mod files:" FontSize="14" Margin="0,0,0,10" Width="100"/>
+                        <TextBlock Text="{x:Bind common:Localization.MOD_INFORMATION}" FontSize="14" Margin="0,0,0,10" Width="100"/>
                         <RichEditBox x:FieldModifier="private" x:Name="FilePaths"
                             AcceptsReturn="True"
                             AutomationProperties.Name="Output"

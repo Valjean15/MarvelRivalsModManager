@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="using:MarvelRivalManager.UI.ViewModels"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"
     
     Loaded="CollectionControl_Loaded"
@@ -20,24 +21,24 @@
 
                         <MenuFlyoutItem x:Name="ContextMenu_Move"
                             Icon="MoveToFolder" 
-                            Text="Move" 
+                            Text="{x:Bind common:Localization.MOVE}" 
                             Click="OnMoveHandler"/>
 
                         <MenuFlyoutItem x:Name="ContextMenu_Edit"
                             Icon="Edit" 
-                            Text="Edit" 
+                            Text="{x:Bind common:Localization.EDIT}" 
                             Click="OnEditHandler"/>
 
                         <MenuFlyoutItem x:Name="ContextMenu_Evaluate"
                             Icon="Orientation" 
-                            Text="Evaluate" 
+                            Text="{x:Bind common:Localization.EVALUATE}" 
                             Click="OnEvaluateHandler"/>
 
                         <MenuFlyoutSeparator x:Name="ContextMenu_Delete_Separator"/>
 
                         <MenuFlyoutItem x:Name="ContextMenu_Delete"
                             Icon="Delete" 
-                            Text="Delete" 
+                            Text="{x:Bind common:Localization.DELETE}" 
                             Click="OnDeleteHandler"/>
                         
                     </MenuFlyout>

@@ -9,24 +9,8 @@ using MarvelRivalManager.Library.Services.Interface;
 
 namespace MarvelRivalManager.UI.Configuration
 {
-    /// <summary>
-    ///     Extension of the configuration of the application
-    /// </summary>
-    public interface IAppEnvironment : IEnv
-    {
-        /// <summary>
-        ///     Write on the user settings the new values
-        /// </summary>
-        public void Update(IEnv environment);
-
-        /// <summary>
-        ///     Get default configuration
-        /// </summary>
-        public IEnv Default();
-    }
-
     /// <see cref="IAppEnvironment"/>
-    public class AppEnvironment : Env, IAppEnvironment
+    public class AppEnvironment : Env, IEnv
     {
         #region Constants
 
@@ -50,7 +34,7 @@ namespace MarvelRivalManager.UI.Configuration
         #endregion
 
         /// <see cref="IEnv.Refresh"/>
-        public override IAppEnvironment Refresh()
+        public override IEnv Refresh()
         {
             // Read data from the user settings
             UserSettingsFolder.CreateDirectoryIfNotExist();
@@ -73,14 +57,14 @@ namespace MarvelRivalManager.UI.Configuration
             return values;
         }
 
-        /// <see cref="IAppEnvironment.Update(IEnv)"/>
-        public void Update(IEnv environment)
+        /// <see cref="IEnv.Update(IEnv)"/>
+        public override void Update(IEnv environment)
         {
             UserSettingsFile.WriteFileContent(environment as AppEnvironment);
         }
 
-        /// <see cref="IAppEnvironment.Default"/>
-        public IEnv Default()
+        /// <see cref="IEnv.Default"/>
+        public override IEnv Default()
         {
             var disabled = Path.Combine(UserSettingsFolder, "disabled");
             var enabled = Path.Combine(UserSettingsFolder, "enabled");

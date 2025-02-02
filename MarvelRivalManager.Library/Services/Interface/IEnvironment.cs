@@ -11,6 +11,16 @@
         public IEnvironment Refresh();
 
         /// <summary>
+        ///     Update the configuration
+        /// </summary>
+        public void Update(IEnvironment values);
+
+        /// <summary>
+        ///     Get default configuration
+        /// </summary>
+        public IEnvironment Default();
+
+        /// <summary>
         ///     Folder paths
         /// </summary>
         public Folders Folders { get; set; }
@@ -68,9 +78,9 @@
     public class Options
     {
         /// <summary>
-        ///     Indicate to use parallel loops
+        ///     Indicate to use single thread on operations
         /// </summary>
-        public bool UseParallelLoops { get; set; }
+        public bool UseSingleThread { get; set; }
 
         /// <summary>
         ///    Refers to deploy all the mods on separate files when patching the game

@@ -6,11 +6,12 @@
     xmlns:local="using:MarvelRivalManager.UI.Pages.Dialogs"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"
     
-    Title="Enter a value"
-    PrimaryButtonText="Enter"
-    CloseButtonText="Cancel"
+    Title="{x:Bind common:Localization.ENTER_A_VALUE}"
+    PrimaryButtonText="{x:Bind common:Localization.ENTER}"
+    CloseButtonText="{x:Bind common:Localization.CANCEL}"
     DefaultButton="Primary"
     >
 

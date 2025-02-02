@@ -6,21 +6,22 @@
     xmlns:local="using:MarvelRivalManager.UI.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:common="using:MarvelRivalManager.UI.Common"
     mc:Ignorable="d"
     
     Loaded="Page_Loaded"
 >
     <StackPanel>
         <CommandBar IsOpen="False" DefaultLabelPosition="Right" IsSticky="True" HorizontalAlignment="Left">
-            <AppBarButton Icon="SaveLocal" Label="Patch" Click="PatchButton_Click" />
-            <AppBarButton Icon="Refresh" Label="Unpatch" Click="UnpatchButton_Click" />
+            <AppBarButton Icon="SaveLocal" Label="{x:Bind common:Localization.PATCH}" Click="PatchButton_Click" />
+            <AppBarButton Icon="Refresh" Label="{x:Bind common:Localization.UNPATCH}" Click="UnpatchButton_Click" />
             <AppBarSeparator />
 
-            <AppBarButton Icon="Library" Label="Download" Click="DownloadButton_Click" />
-            <AppBarButton Icon="Delete" Label="Delete" Click="DeleteDownloadButton_Click" />
+            <AppBarButton Icon="Library" Label="{x:Bind common:Localization.DOWNLOAD}" Click="DownloadButton_Click" />
+            <AppBarButton Icon="Delete" Label="{x:Bind common:Localization.DELETE}" Click="DeleteDownloadButton_Click" />
             <AppBarSeparator />
-            
-            <AppBarButton Icon="Clear" Label="Clear" Click="ClearButton_Click" />
+
+            <AppBarButton Icon="Clear" Label="{x:Bind common:Localization.CLEAR}" Click="ClearButton_Click" />
 
         </CommandBar>
         <ProgressBar x:Name="IsInProgress" IsIndeterminate="False" Value="100" />

@@ -8,6 +8,7 @@ using SharpCompress.Readers;
 
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Text;
 
 namespace MarvelRivalManager.Library.Services.Implementation
 {
@@ -38,8 +39,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
             return await ValidateConfiguration() && await UnpackInternal(mod);
         }
 
-        /// <see cref="IRepack.Unpack(Delegates.Print)"/>
-        public async ValueTask<bool> Unpack(Delegates.Print informer)
+        /// <see cref="IRepack.Unpack(Delegates.Log)"/>
+        public async ValueTask<bool> Unpack(Delegates.Log informer)
         {
             if (!await ValidateConfiguration(informer))
                 return false;
@@ -47,7 +48,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             // Remove old content
             if (!Directory.Exists(ExtractionFolder))
             {
-                await informer("Extraction folder do not exist, creating folder...".AsLog(LogConstants.UNPACK));
+                await informer(["CREATING_EXTRACTION_FOLDER"], new PrintParams(LogConstants.UNPACK));
                 ExtractionFolder.CreateDirectoryIfNotExist();
             }
             else
@@ -56,7 +57,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             // Get all mods
-            var mods = (await Query.All(true))?.OrderBy(mod => mod.Metadata.Order)?.ToArray() ?? [];
+            var mods = (await Query.All(true)) ?? [];
 
             // Update unused content
             await UpdateUnusedMods(informer, mods.Where(x => !x.Metadata.Valid).ToArray(), "invalid");
@@ -66,38 +67,46 @@ namespace MarvelRivalManager.Library.Services.Implementation
             var enabled = mods.Where(x => x.Metadata.Valid && x.Metadata.Enabled).ToArray();
             if (enabled.Length == 0)
             {
-                await informer("No valids mods to unpack...".AsLog(LogConstants.UNPACK));
+                await informer(["NO_VALID_MODS_TO_UNPACK"], new PrintParams(LogConstants.UNPACK));
                 return false;
             }
 
             // Unpack mods
-            await informer("Unpacking mods...".AsLog(LogConstants.UNPACK));
+            await informer(["UNPACKING_MODS"], new PrintParams(LogConstants.UNPACK));
             var time = Stopwatch.StartNew();
 
-            if (Configuration.Options.UseParallelLoops)
+            if (Configuration.Options.UseSingleThread)
             {
-                await Parallel.ForEachAsync(enabled, async (mod, token) => await UnpackLocal(informer, mod));
+                // Must respect the order
+                foreach (var mod in enabled.OrderBy(mod => mod.Metadata.Order))
+                    await UnpackLocal(informer, mod);
             }
             else
             {
-                foreach (var mod in enabled)
-                    await UnpackLocal(informer, mod);
+                // Must respect the order
+                foreach (var collection in enabled
+                    .GroupBy(mod => mod.Metadata.Order)
+                    .OrderBy(group => group.Key)
+                )
+                {
+                    await Parallel.ForEachAsync(collection, async (mod, token) => await UnpackLocal(informer, mod));
+                }
             }
-            
+
             time.Stop();
-            await informer($"Unpacking mods complete - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.UNPACK));
+            await informer(["UNPACKING_SUCCESS_MODS"], new PrintParams(LogConstants.UNPACK, time.GetHumaneElapsedTime()));
 
             return true;
 
-            async ValueTask UnpackLocal(Delegates.Print informer, Mod mod)
+            async ValueTask UnpackLocal(Delegates.Log informer, Mod mod)
             {
-                await informer($"- Unpacking mod {mod}...".AsLog(LogConstants.UNPACK));
                 if (!(await UnpackInternal(mod)))
                 {
-                    await informer($"- Failed to unpack mod {mod}".AsLog(LogConstants.UNPACK));
+                    await informer(["ERROR_UNPACKING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
                     return;
                 }
 
+                await informer(["UNPACKING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
                 mod.Metadata.Unpacked = true;
 
                 if (Configuration.Options.EvaluateOnUpdate)
@@ -121,41 +130,41 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
         }
 
-        /// <see cref="IRepack.GetUnpackedFolder(Delegates.Print?)"/>
-        public async ValueTask<string> GetUnpackedFolder(Delegates.Print? informer = null)
+        /// <see cref="IRepack.GetUnpackedFolder(Delegates.Log?)"/>
+        public async ValueTask<string> GetUnpackedFolder(Delegates.Log? informer = null)
         {
             return !await ValidateConfiguration(informer) || !Directory.Exists(ExtractionFolder) ? string.Empty : ExtractionFolder;
         }
 
-        /// <see cref="IRepack.Pack(Delegates.Print)"/>
-        public async ValueTask<string[]> Pack(Delegates.Print informer)
+        /// <see cref="IRepack.Pack(Delegates.Log)"/>
+        public async ValueTask<string[]> Pack(Delegates.Log informer)
         {
             if (!await ValidateConfiguration(informer))
                 return [];
 
             if (!Directory.Exists(ExtractionFolder))
             {
-                await informer("Extraction folder do not exist".AsLog(LogConstants.PACK));
+                await informer(["EXTRACTION_FOLDER_NOT_FOUND"], new PrintParams(LogConstants.PACK));
                 return [];
             }
 
-            await informer("Packing mods...".AsLog(LogConstants.PACK));
+            await informer(["PACKING_MODS"], new PrintParams(LogConstants.PACK));
             var time = Stopwatch.StartNew();
 
             var files = new List<string>();
             if (Configuration.Options.DeployOnSeparateFile)
             {
-                if (Configuration.Options.UseParallelLoops)
+                if (Configuration.Options.UseSingleThread)
+                {
+                    foreach (var directory in Directory.GetDirectories(ExtractionFolder))
+                        files.Add(await ToolPack(directory));
+                }
+                else
                 {
                     await Parallel.ForEachAsync(Directory.GetDirectories(ExtractionFolder), async (directory, token) =>
                     {
                         files.Add(await ToolPack(directory));
                     });
-                }
-                else
-                {
-                    foreach (var directory in Directory.GetDirectories(ExtractionFolder))
-                        files.Add(await ToolPack(directory));
                 }
             }
             else
@@ -164,7 +173,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             time.Stop();
-            await informer($"Packing mods complete - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.PACK));
+            await informer(["PACKING_SUCCESS_MODS"], new PrintParams(LogConstants.PACK, time.GetHumaneElapsedTime()));
 
             return [.. files.Where(file => !string.IsNullOrEmpty(file))];
         }
@@ -174,43 +183,44 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <summary>
         ///     Update the status of invalid mods
         /// </summary>
-        private async ValueTask UpdateUnusedMods(Delegates.Print informer, Mod[] collection, string alias)
+        private async ValueTask UpdateUnusedMods(Delegates.Log informer, Mod[] collection, string alias)
         {
             if (collection.Length == 0)
                 return;
 
-            await informer($"Updating {alias} mods status...".AsLog(LogConstants.UNPACK));
+            await informer(["UPDATING_MOD_FILES_ALIAS"], new PrintParams(LogConstants.UNPACK, Name: alias));
             var time = Stopwatch.StartNew();
 
-            if (Configuration.Options.UseParallelLoops)
+            if (Configuration.Options.UseSingleThread)
             {
-                await Parallel.ForEachAsync(collection, async (mod, token) => await Update(mod));
+                foreach (var mod in collection)
+                {
+                    mod.Metadata.Unpacked = false;
+                    mod.Update();
+                }
             }
             else
             {
-                foreach (var mod in collection)
-                    await Update(mod);
+                Parallel.ForEach(collection, mod =>
+                {
+                    mod.Metadata.Unpacked = false;
+                    mod.Update();
+                });
             }
 
             time.Stop();
-            await informer($"Updating {alias} mods status complete - {time.GetHumaneElapsedTime()}".AsLog(LogConstants.UNPACK));
-
-            static async Task Update(Mod mod)
-            {
-                mod.Metadata.Unpacked = false;
-                mod.Update();
-            }
+            await informer(["UPDATING_SUCCESS_MOD_FILES_ALIAS"], new PrintParams(LogConstants.UNPACK, time.GetHumaneElapsedTime(), alias));
         }
 
         /// <summary>
         ///     Validate if the applicatioin configuration is valid
         /// </summary>
-        private async ValueTask<bool> ValidateConfiguration(Delegates.Print? informer = null)
+        private async ValueTask<bool> ValidateConfiguration(Delegates.Log? informer = null)
         {
             if (Configuration.Options.IgnorePackerTool)
             {
                 if (informer is not null)
-                    await informer("The Repack tool is ignored on the settings option section".AsLog(LogConstants.UNPACK));
+                    await informer(["REPACK_TOOL_IGNORED"], new PrintParams(LogConstants.UNPACK));
 
                 return false;
             }
@@ -218,7 +228,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (string.IsNullOrEmpty(Configuration.Folders?.RepackFolder))
             {
                 if (informer is not null)
-                    await informer("The unpacker executable path is required.".AsLog(LogConstants.UNPACK));
+                    await informer(["REPACK_PATH_NOT_FOUND"], new PrintParams(LogConstants.UNPACK));
 
                 return false;
             }
@@ -226,7 +236,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (!RepakToolExist())
             {
                 if (informer is not null)
-                    await informer("The unpacker executable do not exist on the unpacker folder.".AsLog(LogConstants.UNPACK));
+                    await informer(["REPACK_EXE_NOT_FOUND"], new PrintParams(LogConstants.UNPACK));
 
                 return false;
             }
@@ -332,6 +342,46 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> ToolUnpack(FileInformation file)
         {
+            var arguments = new StringBuilder();
+            if (!string.IsNullOrEmpty(AES_KEY))
+                arguments.Append($"--aes-key {AES_KEY} ");
+
+            arguments.Append($"unpack \"{file.Filepath}\"");
+
+            if (!await UseTool(arguments.ToString()))
+                return false;
+
+            return Directory.Exists(file.ExtractionContent);
+        }
+
+        /// <summary>
+        ///     Make a pak file
+        /// </summary>
+        private async ValueTask<string> ToolPack(string folder)
+        {
+            if (string.IsNullOrEmpty(folder))
+                return string.Empty;
+
+            var arguments = new StringBuilder();
+            if (!string.IsNullOrEmpty(AES_KEY))
+                arguments.Append($"--aes-key {AES_KEY} ");
+
+            arguments.Append($"pack \"{folder}\"");
+
+            var file = $"{folder}.pak";
+            file.DeleteFileIfExist();
+
+            if (!await UseTool(arguments.ToString()))
+                return string.Empty;
+
+            return File.Exists(file) ? file : string.Empty;
+        }
+
+        /// <summary>
+        ///     Use the tool with the arguments
+        /// </summary>
+        private async ValueTask<bool> UseTool(string arguments)
+        {
             if (!RepakToolExist())
                 return false;
 
@@ -340,7 +390,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 using var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = Executable,
-                    Arguments = $"--aes-key {AES_KEY} unpack \"{file.Filepath}\"",
+                    Arguments = arguments,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 });
@@ -349,44 +399,11 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     return false;
 
                 await process.WaitForExitAsync();
-                return Directory.Exists(file.ExtractionContent);
+                return true;
             }
             catch
             {
                 return false;
-            }
-        }
-
-        /// <summary>
-        ///     Make a pak file
-        /// </summary>
-        private async ValueTask<string> ToolPack(string folder)
-        {
-            var file = $"{folder}.pak";
-
-            if (!RepakToolExist() || string.IsNullOrEmpty(folder))
-                return string.Empty;
-
-            try
-            {
-                file.DeleteFileIfExist();
-                using var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = Executable,
-                    Arguments = $"--aes-key {AES_KEY} pack \"{folder}\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                });
-
-                if (process is null)
-                    return string.Empty;
-
-                await process.WaitForExitAsync();
-                return File.Exists(file) ? file : string.Empty;
-            }
-            catch
-            {
-                return string.Empty;
             }
         }
 

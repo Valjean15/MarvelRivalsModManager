@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 namespace MarvelRivalManager.Library.Util
 {
@@ -23,13 +24,18 @@ namespace MarvelRivalManager.Library.Util
 
         private static string[] TryToGetGameInstallationFolders()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return [];
+            }
+
             try
             {
                 var key32 = Registry.LocalMachine.OpenSubKey("SOFTWARE\\VALVE\\");
                 var key64 = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Wow6432Node\\Valve\\");
 
-                var posibles32 = TryToGetGameInstallationFolders(ref key32);
-                var posibles64 = TryToGetGameInstallationFolders(ref key64);
+                var posibles32 = key32 is null ? [] : TryToGetGameInstallationFolders(ref key32);
+                var posibles64 = key64 is null ? [] : TryToGetGameInstallationFolders(ref key64);
 
                 return posibles32.Concat(posibles64).ToArray();
             }
@@ -42,6 +48,11 @@ namespace MarvelRivalManager.Library.Util
 
         private static List<string> TryToGetGameInstallationFolders(ref RegistryKey key)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return [];
+            }
+
             var posibles = new List<string>();
 
             try

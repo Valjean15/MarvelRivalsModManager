@@ -109,7 +109,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             var all = await Query.All(true);
 
-            if (Configuration.Options.UseParallelLoops)
+            if (Configuration.Options.UseSingleThread)
             {
                 await Parallel.ForEachAsync(all, async (mod, token) =>
                 {
