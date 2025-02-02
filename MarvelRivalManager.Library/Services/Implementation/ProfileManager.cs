@@ -111,19 +111,19 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             if (Configuration.Options.UseSingleThread)
             {
-                await Parallel.ForEachAsync(all, async (mod, token) =>
-                {
-                    mod.Metadata.Enabled = profile.Metadata.Selected.Contains(mod.File.Filename);
-                    await Manager.Update(mod);
-                }); 
-            }
-            else
-            {
                 foreach (var mod in all)
                 {
                     mod.Metadata.Enabled = profile.Metadata.Selected.Contains(mod.File.Filename);
                     await Manager.Update(mod);
                 }
+            }
+            else
+            {
+                await Parallel.ForEachAsync(all, async (mod, token) =>
+                {
+                    mod.Metadata.Enabled = profile.Metadata.Selected.Contains(mod.File.Filename);
+                    await Manager.Update(mod);
+                });
             }
 
             profile.Metadata.Active = true;
