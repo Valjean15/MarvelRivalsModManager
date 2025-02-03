@@ -49,9 +49,6 @@ namespace MarvelRivalManager.UI
             _ = new Services(new ServiceCollection()
                 .AddSingleton<IEnvironment, AppEnvironment>(provider => configuration.Get<AppEnvironment>() ?? new())
                 .AddMavelRivalManagerServices()
-                .AddSingleton<Home>()
-                .AddTransient<ModManager>()
-                .AddTransient<Settings>()
                 .BuildServiceProvider()
             );
         }
@@ -62,7 +59,7 @@ namespace MarvelRivalManager.UI
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            m_window = Services.Get<Home>();
+            m_window = new Home();
             m_window?.Activate();
 
             // Default size of the window

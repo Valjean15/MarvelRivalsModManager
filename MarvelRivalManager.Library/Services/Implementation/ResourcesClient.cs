@@ -14,13 +14,17 @@ namespace MarvelRivalManager.Library.Services.Implementation
     /// <see cref="IResourcesClient"/>
     internal class ResourcesClient(IEnvironment configuration, IRepack repack) : IResourcesClient
     {
+        #region Constants
+        private const string TOOL_VERSION_KEY = "RepakVersion";
+        #endregion
+
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
         private readonly IRepack Repack = repack;
         private readonly MegaApiClient Client = new();
         #endregion
 
-        /// <see cref="IResourcesClient.Delete(Delegates.PrintAndUndo)"/>
+        /// <see cref="IResourcesClient.Delete(Delegates.Log)"/>
         public async ValueTask<bool> Delete(Delegates.Log informer)
         {
             if (Configuration.Options.IgnorePackerTool)
@@ -48,8 +52,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
             return true;
         }
 
-        /// <see cref="IResourcesClient.Download(Delegates.PrintAndUndo, CancellationToken?)"/>
-        public async ValueTask<bool> Download(Delegates.Log informer, CancellationToken? cancellationToken = null)
+        /// <see cref="IResourcesClient.Download(Delegates.Log, bool, CancellationToken?)"/>
+        public async ValueTask<bool> Download(Delegates.Log informer, bool update, CancellationToken? cancellationToken = null)
         {
             if (Configuration.Options.IgnorePackerTool)
             {
@@ -57,27 +61,25 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return true;
             }
 
-            var resource = Configuration.Folders.RepackFolder;
-            if (string.IsNullOrEmpty(resource))
+            if (string.IsNullOrEmpty(Configuration.Folders.RepackFolder))
             {
                 await informer(["REPACK_TOOL_FOLDER_NOT_DEFINED"], new PrintParams(LogConstants.DOWNLOAD));
                 return false;
             }
 
-            if (!Directory.Exists(resource))
+            if (!Directory.Exists(Configuration.Folders.RepackFolder))
             {
                 await informer(["REPACK_TOOL_FOLDER_NOT_FOUND"], new PrintParams(LogConstants.DOWNLOAD));
-                resource.CreateDirectoryIfNotExist();
+                Configuration.Folders.RepackFolder.CreateDirectoryIfNotExist();
             }
 
-            // Already downloaded, no need to download again
-            if (await Repack.IsAvailable())
+            if (await Repack.IsAvailable() && (!update || !await NewVersionAvailable(async (keys, @params) => { }, cancellationToken)))
             {
                 await informer(["REPACK_TOOL_ALREADY_DOWNLOADED"], new PrintParams(LogConstants.DOWNLOAD));
                 return true;
             }
 
-            if (string.IsNullOrEmpty(await Download("Repack", resource, informer, cancellationToken)))
+            if (!await Download("Repak", Configuration.Folders.RepackFolder, informer, cancellationToken))
                 return false;
 
             await informer(["REPACK_TOOL_VALIDATING_DOWNLOAD"], new PrintParams(LogConstants.DOWNLOAD));
@@ -91,128 +93,238 @@ namespace MarvelRivalManager.Library.Services.Implementation
             return true;
         }
 
+        /// <see cref="IResourcesClient.Download(Delegates.Log, CancellationToken?)"/>
+        public async ValueTask<bool> Download(Delegates.Log informer, CancellationToken? cancellationToken = null)
+        {
+            return await Download(informer, true, cancellationToken);
+        }
+
+        /// <see cref="IResourcesClient.NewVersionAvailable(Delegates.Log, CancellationToken?)"/>
+        public async ValueTask<bool> NewVersionAvailable(Delegates.Log informer, CancellationToken? cancellationToken = null)
+        {
+            if (Configuration.Options.IgnorePackerTool)
+            {
+                await informer(["REPACK_TOOL_IGNORED"], new PrintParams(LogConstants.DOWNLOAD));
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(Configuration.Folders.RepackFolder))
+            {
+                await informer(["REPACK_TOOL_FOLDER_NOT_DEFINED"], new PrintParams(LogConstants.DOWNLOAD));
+                return false;
+            }
+
+            Configuration.Variables.TryGetValue(TOOL_VERSION_KEY, out var raw);
+            _ = Version.TryParse(raw, out var current);
+
+            if (!await Login(informer))
+            {
+                await LogOut(informer);
+                return false;
+            }
+
+            var last = (await GetLastVersion("Repak", informer)).Version;
+            await LogOut(informer);
+
+            return last is not null && (current is null || last > current);
+        }
+
         #region Private methods
 
         /// <summary>
         ///     Download a resource from the service
         /// </summary>
-        private async ValueTask<string> Download(string name, string folder, Delegates.Log informer, CancellationToken? cancellationToken)
+        private async ValueTask<bool> Download(string remote, string local, Delegates.Log informer, CancellationToken? cancellationToken)
         {
-            Stopwatch? time = null;
-            string? downloadedFile = null;
-            string? downloadedFileInFolder = null;
-
-            var resource = $"{name}.rar";
-            var extractedFolder = Path.Combine(folder, name);
-
-            try
+            if (!await Login(informer))
             {
-                // Login into the service
-                await informer(["CLIENT_LOGIN"], new PrintParams(LogConstants.DOWNLOAD));
-                time = Stopwatch.StartNew();
+                await LogOut(informer);
+                return false;
+            }
 
-                await Client.LoginAnonymousAsync();
+            var (lastVersion, version) = (await GetLastVersion(remote, informer));
+            if (lastVersion is null || version is null)
+            {
+                await LogOut(informer);
+                return false;
+            }
 
-                time.Stop();
-                await informer(["CLIENT_LOGIN_COMPLETE"], new PrintParams(LogConstants.DOWNLOAD, time.GetHumaneElapsedTime()));
+            // Download file
+            var filename = $"{remote}-{lastVersion.Name}";
+            var downloaded = Path.Combine(Configuration.Folders.DownloadFolder, filename);
+            downloaded.DeleteFileIfExist();
 
-                time.Reset();
-
-                // Download the backup resource
-                time.Start();
-                await informer(["CLIENT_RESOURCE_LOOKUP"], new PrintParams(LogConstants.DOWNLOAD, Name: name));
-
-                INode? toDownload = null;
-                downloadedFile = Path.Combine(Configuration.Folders.DownloadFolder, resource);
-                foreach (var node in Client.GetNodesFromLink(new Uri(Configuration.Folders.MegaFolder)).Where(node => node is not null && node.Type.Equals(NodeType.File)))
+            if (!await Measure(informer, async (time) =>
+            {
+                await Client.DownloadFileAsync(lastVersion, downloaded, new Progress<double>((percentage) =>
                 {
-                    if (node!.Name.Equals(resource, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        toDownload = node;
-                        break;
-                    }
-                }
+                    if (Math.Round(percentage, 0) % 10 == 0)
+                        informer(["CLIENT_RESOURCE_PROGRESS"], new PrintParams(
+                            LogConstants.DOWNLOAD,
+                            Name: $"{remote} - {Math.Round(percentage, 3)}%",
+                            UndoLast: true
+                            ));
 
-                if (toDownload is null)
-                {
-                    await informer(["CLIENT_RESOURCE_NOT_FOUND"], new PrintParams(LogConstants.DOWNLOAD, Name: name));
-                    time.Stop();
-                    return string.Empty;
-                }
-                else
-                {
-                    downloadedFile.DeleteFileIfExist();
-
-                    await Client.DownloadFileAsync(toDownload, downloadedFile, new Progress<double>((percentage) =>
-                    {
-                        if(Math.Round(percentage, 0) % 10 == 0)
-                            informer(["CLIENT_RESOURCE_PROGRESS"], new PrintParams(
-                                LogConstants.DOWNLOAD, 
-                                Name: $"{resource} - {Math.Round(percentage, 3)}%",
-                                UndoLast: true
-                                ));
-
-                    }), cancellationToken);
-                }
+                }), cancellationToken);
 
                 time.Stop();
                 await informer(["CLIENT_RESOURCE_DOWNLOADED"], new PrintParams(LogConstants.DOWNLOAD, time.GetHumaneElapsedTime()));
 
-                time.Reset();
+                return true;
+            }))
+            {
+                await LogOut(informer);
+                return false;
+            }
 
-                // Move the download to resource folder
-                time.Start();
-                await informer(["CLIENT_RESOURCE_MOVING"], new PrintParams(LogConstants.DOWNLOAD, Name: name));
+            // Logout, we don't need the service anymore
+            await LogOut(informer);
 
-                downloadedFileInFolder = downloadedFile.MakeSafeMove(Path.Combine(folder, resource));
+            // Move the downloaded file to resource folder
+            var movedDownloadedFile = await Measure(informer, async (time) =>
+            {
+                await informer(["CLIENT_RESOURCE_MOVING"], new PrintParams(LogConstants.DOWNLOAD, Name: remote));
 
+                var movedDownloadedFile = downloaded.MakeSafeMove(Path.Combine(local, filename));
                 time.Stop();
                 await informer(["CLIENT_RESOURCE_MOVING_COMPLETE"], new PrintParams(LogConstants.DOWNLOAD, time.GetHumaneElapsedTime()));
 
-                time.Reset();
+                return movedDownloadedFile;
+            });
+            if (string.IsNullOrWhiteSpace(movedDownloadedFile))
+                return false;
 
-                // Decompress the download to resource folder
-                time.Start();
-                await informer(["CLIENT_RESOURCE_DECOMPRESS"], new PrintParams(LogConstants.DOWNLOAD, Name: name));
+            // Decompress the downloaded file into the resource folder
+            if (!await Measure(informer, async (time) =>
+            {
+                await informer(["CLIENT_RESOURCE_DECOMPRESS"], new PrintParams(LogConstants.DOWNLOAD, Name: remote));
 
-                using (var archive = RarArchive.Open(downloadedFileInFolder))
+                using (var archive = RarArchive.Open(movedDownloadedFile))
                 {
                     var reader = archive.ExtractAllEntries();
-                    reader.WriteAllToDirectory(folder, new SharpCompress.Common.ExtractionOptions
+                    reader.WriteAllToDirectory(local, new SharpCompress.Common.ExtractionOptions
                     {
                         ExtractFullPath = true,
                         Overwrite = true
                     });
                 }
 
-                downloadedFileInFolder.DeleteFileIfExist();
-                if (Directory.Exists(extractedFolder))
-                {
-                    await extractedFolder.MergeDirectoryAsync(folder);
-                    extractedFolder.DeleteDirectoryIfExists();
-                }
-
+                movedDownloadedFile.DeleteFileIfExist();
                 time.Stop();
+
                 await informer(["CLIENT_RESOURCE_DECOMPRESS_COMPLETE"], new PrintParams(LogConstants.DOWNLOAD, time.GetHumaneElapsedTime()));
 
-                return folder;
+                return true;
+            }))
+                return false;
+
+            SaveVersion(version, TOOL_VERSION_KEY);
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Wrapper to measure the time of an action
+        /// </summary>
+        private async ValueTask<T?> Measure<T>(Delegates.Log informer, Delegates.AsyncActionWithTimer<T> action)
+        {
+            var time = Stopwatch.StartNew();
+
+            try
+            {
+                return await action(time);
             }
             catch (Exception ex)
             {
-                await informer(["CLIENT_RESOURCE_ERROR"], new PrintParams(LogConstants.DOWNLOAD, ex.Message));
-                return string.Empty;
-            }
-            finally
-            {
-                // For any error we stop the watch
-                time?.Stop();
-                downloadedFile?.DeleteFileIfExist();
-                downloadedFileInFolder?.DeleteFileIfExist();
-                extractedFolder.DeleteDirectoryIfExists();
+                await informer(["CLIENT_RESOURCE_ERROR"], new PrintParams(LogConstants.DOWNLOAD, Name: ex.Message));
 
+                time?.Stop();
+                await LogOut(informer);
+
+                return default;
+            }
+        }
+
+        /// <summary>
+        ///     Login into the service
+        /// </summary>
+        private async ValueTask<bool> Login(Delegates.Log informer)
+        {
+            return await Measure(informer, async (Stopwatch time) =>
+            {
+                await informer(["CLIENT_LOGIN"], new PrintParams(LogConstants.DOWNLOAD));
+                await Client.LoginAnonymousAsync();
+
+                time.Stop();
+                await informer(["CLIENT_LOGIN_COMPLETE"], new PrintParams(LogConstants.DOWNLOAD, time.GetHumaneElapsedTime()));
+
+                return true;
+            });
+        }
+
+        /// <summary>
+        ///     Logout from the service
+        /// </summary>
+        private async ValueTask LogOut(Delegates.Log informer)
+        {
+            if (Client.IsLoggedIn)
+            {
                 await informer(["CLIENT_LOGOUT"], new PrintParams(LogConstants.DOWNLOAD));
                 await Client.LogoutAsync();
-            }
+            }  
+        }
+
+        /// <summary>
+        ///     Get the last version of a resource
+        /// </summary>
+        private async ValueTask<(INode? Node, Version? Version)> GetLastVersion(string file, Delegates.Log informer)
+        {
+            (INode? Node, Version? Version) empty = (null, null);
+
+            return await Measure(informer, async (Stopwatch time) =>
+            {
+                await informer(["CLIENT_RESOURCE_LOOKUP"], new PrintParams(LogConstants.DOWNLOAD, Name: file));
+
+                if (string.IsNullOrEmpty(Configuration.Folders.MegaFolder))
+                {
+                    time.Stop();
+                    await informer(["CLIENT_RESOURCE_FOLDER_NOT_DEFINED"], new PrintParams(LogConstants.DOWNLOAD));
+                    return empty;
+                }
+
+                var all = Client.GetNodesFromLink(new Uri(Configuration.Folders.MegaFolder));
+                var directory = all.FirstOrDefault(node => node is not null && node.Type == NodeType.Directory && node.Name.Equals(file, StringComparison.InvariantCultureIgnoreCase));
+                var resources = directory is null ? [] : all.Where(node => node.ParentId == directory?.Id && node.Type == NodeType.File);
+
+                if (!resources.Any())
+                {
+                    time.Stop();
+                    await informer(["CLIENT_RESOURCE_NOT_FOUND"], new PrintParams(LogConstants.DOWNLOAD, Name: file));
+                    return empty;
+                }
+
+                var last = resources
+                    .Select(node =>
+                    {
+                        _ = Version.TryParse(Path.GetFileNameWithoutExtension(node.Name), out var version);
+                        return (node, version);
+                    })
+                    .OrderByDescending(resource => resource.version)
+                    .First();
+
+                time.Stop();
+                return last;
+            });
+        }
+
+        /// <summary>
+        ///     The tool version
+        /// </summary>
+        private void SaveVersion(Version version, string key)
+        {
+            Configuration.Refresh();
+            Configuration.Variables[key] = version.ToString();
+            Configuration.Update(Configuration);
         }
 
         #endregion

@@ -126,6 +126,7 @@ namespace MarvelRivalManager.UI.Common
             ["REPACK_TOOL_VALIDATING_DOWNLOAD"] = "Validating if the Repack exists",
             ["REPACK_TOOL_DOWNLOAD_WAS_INVALID"] = "The Repack cannot be found",
             ["REPACK_TOOL_DOWNLOAD_WAS_VALID"] = "The Repack was found",
+            ["REPACK_TOOL_NEW_VERSION_AVAILABLE"] = "The Repack tool has a new version available",
 
             ["CLIENT_LOGIN"] = "Login into service...",
             ["CLIENT_LOGIN_COMPLETE"] = "Login completed - {Time}",
@@ -139,6 +140,8 @@ namespace MarvelRivalManager.UI.Common
             ["CLIENT_RESOURCE_DECOMPRESS_COMPLETE"] = "Decompressing the files completed - {Time}",
             ["CLIENT_RESOURCE_ERROR"] = "Error occurred trying to download backup resource => {Name}",
             ["CLIENT_LOGOUT"] = "Logout from service...",
+
+            ["CLIENT_RESOURCE_FOLDER_NOT_DEFINED"] = "The resource folder is not defined",
         };
 
         public static string Get(string[] keys, PrintParams @params)

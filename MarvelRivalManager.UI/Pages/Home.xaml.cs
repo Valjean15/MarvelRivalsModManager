@@ -1,3 +1,4 @@
+using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.UI.Common;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -6,6 +7,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MarvelRivalManager.UI.Pages
 {
@@ -14,6 +16,11 @@ namespace MarvelRivalManager.UI.Pages
     /// </summary>
     public sealed partial class Home : Window
     {
+        #region Dependencies
+        private readonly IEnvironment m_environment = Services.Get<IEnvironment>().Refresh();
+        private readonly IResourcesClient m_resources = Services.Get<IResourcesClient>();
+        #endregion
+
         #region Constants
         private static Type Settings => typeof(Settings);
         private static string PageNamespace => Settings.Namespace!;
@@ -30,6 +37,8 @@ namespace MarvelRivalManager.UI.Pages
             InitializeComponent();
             navigation.SelectedItem = DefaultPage;
             SystemBackdrop = new MicaBackdrop();
+
+            Task.Run(DownloadPakerToolIfNotExist);
         }
 
         #region Events
@@ -60,6 +69,11 @@ namespace MarvelRivalManager.UI.Pages
         private static Type? GetPageType(NavigationViewItem tab)
         {
             return Type.GetType($"{PageNamespace}.{tab.Tag?.ToString() ?? string.Empty}");
+        }
+
+        private async void DownloadPakerToolIfNotExist()
+        {
+            await m_resources.Download(async (keys, @params) => {  }, false);
         }
 
         #endregion

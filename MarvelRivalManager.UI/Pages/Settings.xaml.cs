@@ -1,5 +1,4 @@
 using MarvelRivalManager.Library.Services.Interface;
-using MarvelRivalManager.UI.Configuration;
 using MarvelRivalManager.UI.Helper;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -32,7 +31,7 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private void Update(object _, string __)
         {
-            UpdateSettings();
+            m_environment.Update(m_environment);
         }
 
         /// <summary>
@@ -40,7 +39,7 @@ namespace MarvelRivalManager.UI.Pages
         /// </summary>
         private void ToggleButton_Click(object _, RoutedEventArgs __)
         {
-            UpdateSettings();
+            m_environment.Update(m_environment);
         }
 
         /// <summary>
@@ -54,19 +53,6 @@ namespace MarvelRivalManager.UI.Pages
             var next = ThemeHelper.ActualTheme == ElementTheme.Light ? ElementTheme.Dark : ElementTheme.Light;
             ThemeHelper.Update(next);
             ToggleThemeButton.Content = next.ToString();
-        }
-
-        #endregion
-
-        #region Private methods
-
-        /// <summary>
-        ///     Update the settings of the application
-        /// </summary>
-        private void UpdateSettings()
-        {
-            if (m_environment is AppEnvironment environment)
-                environment.Update(m_environment);
         }
 
         #endregion

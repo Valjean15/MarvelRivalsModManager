@@ -1,16 +1,35 @@
-﻿using IEnv = MarvelRivalManager.Library.Services.Interface.IEnvironment;
-using Env = MarvelRivalManager.Library.Services.Implementation.Environment;
-
+﻿using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 
 using System.IO;
 using System;
-using MarvelRivalManager.Library.Services.Interface;
+
+using BaseAppEnvironment = MarvelRivalManager.Library.Services.Implementation.Environment;
+using System.Collections.Concurrent;
 
 namespace MarvelRivalManager.UI.Configuration
 {
-    /// <see cref="IAppEnvironment"/>
-    public class AppEnvironment : Env, IEnv
+    /// <summary>
+    ///     Session values
+    /// </summary>
+    public static class SessionValues
+    {
+        private static ConcurrentDictionary<string, string> _localization = new();
+
+        public static string Get(string key)
+        {
+            return _localization.GetOrAdd(key, string.Empty);
+        }
+
+        public static string Set(string key, string value)
+        {
+            _localization.AddOrUpdate(key, value, (k, v) => value);
+            return value;
+        }
+    }
+
+    /// <see cref="BaseAppEnvironment"/>
+    public class AppEnvironment : BaseAppEnvironment, IEnvironment
     {
         #region Constants
 
@@ -33,8 +52,8 @@ namespace MarvelRivalManager.UI.Configuration
 
         #endregion
 
-        /// <see cref="IEnv.Refresh"/>
-        public override IEnv Refresh()
+        /// <see cref="IEnvironment.Refresh"/>
+        public override IEnvironment Refresh()
         {
             // Read data from the user settings
             UserSettingsFolder.CreateDirectoryIfNotExist();
@@ -53,18 +72,19 @@ namespace MarvelRivalManager.UI.Configuration
             
             Folders = values.Folders ?? new();
             Options = values.Options ?? new();
+            Variables = values.Variables ?? [];
 
             return values;
         }
 
-        /// <see cref="IEnv.Update(IEnv)"/>
-        public override void Update(IEnv environment)
+        /// <see cref="IEnvironment.Update(IEnvironment)"/>
+        public override void Update(IEnvironment environment)
         {
-            UserSettingsFile.WriteFileContent(environment as AppEnvironment);
+            UserSettingsFile.WriteFileContent(environment);
         }
 
-        /// <see cref="IEnv.Default"/>
-        public override IEnv Default()
+        /// <see cref="IEnvironment.Default"/>
+        public override IEnvironment Default()
         {
             var disabled = Path.Combine(UserSettingsFolder, "disabled");
             var enabled = Path.Combine(UserSettingsFolder, "enabled");

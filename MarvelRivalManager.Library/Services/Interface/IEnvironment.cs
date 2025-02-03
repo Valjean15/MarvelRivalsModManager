@@ -29,6 +29,11 @@
         ///     Application behavior options
         /// </summary>
         public Options Options { get; set; }
+
+        /// <summary>
+        ///     Variables used to store the configuration
+        /// </summary>
+        Dictionary<string, string> Variables { get; set; }
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.UI.Common;
+using MarvelRivalManager.UI.Configuration;
 using MarvelRivalManager.UI.Helper;
 
 using Microsoft.UI.Xaml;
@@ -41,6 +42,18 @@ namespace MarvelRivalManager.UI.Pages
         private void Page_Loaded(object _, RoutedEventArgs __)
         {
             m_environment.Refresh();
+
+            // Only check one per session
+            if (SessionValues.Get("CHECK_TOOL_VERSION") != "checked")
+            {
+                Task.Run(async () =>
+                {
+                    if (await m_resources.NewVersionAvailable(async (keys, @params) => { }))
+                        await Print(["REPACK_TOOL_NEW_VERSION_AVAILABLE"], new PrintParams("PACK "));
+
+                    SessionValues.Set("CHECK_TOOL_VERSION", "checked");
+                });
+            }
         }
 
         private async void PatchButton_Click(object _, RoutedEventArgs __)

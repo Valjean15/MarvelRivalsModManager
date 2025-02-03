@@ -19,5 +19,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
         /// <see cref="IEnvironment.Options"/>"/>
         public Options Options { get; set; } = new();
+
+        /// <see cref="IEnvironment.Variables"/>"/>
+        public Dictionary<string, string> Variables { get; set; } = [];
     }
 }

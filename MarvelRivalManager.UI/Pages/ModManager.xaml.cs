@@ -66,23 +66,18 @@ namespace MarvelRivalManager.UI.Pages
 
             m_environment.Refresh();
 
-            // Load the current profile
-            if (m_environment is AppEnvironment environment)
+            ProfileCommandBar.Visibility = m_environment.Options.UseMultipleProfiles ? Visibility.Visible : Visibility.Collapsed;
+            if (!Directory.Exists(m_environment.Folders.Collections))
             {
-                ProfileCommandBar.Visibility = environment.Options.UseMultipleProfiles ? Visibility.Visible : Visibility.Collapsed;
-
-                if (!Directory.Exists(environment.Folders.Collections))
-                {
-                    m_environment.Folders.Collections = environment.Default().Folders.Collections;
-                    environment.Update(m_environment);
-                }
-
-                Current = await m_profiles.GetCurrent();
-                All = await m_profiles.All(true);
-
-                ProfileCombobox.ItemsSource = All;
-                ProfileCombobox.SelectedItem = All.FirstOrDefault(x => x.Metadata.Active);
+                m_environment.Folders.Collections = m_environment.Default().Folders.Collections;
+                m_environment.Update(m_environment);
             }
+
+            Current = await m_profiles.GetCurrent();
+            All = await m_profiles.All(true);
+
+            ProfileCombobox.ItemsSource = All;
+            ProfileCombobox.SelectedItem = All.FirstOrDefault(x => x.Metadata.Active);
 
             IsLoading(false);
 
