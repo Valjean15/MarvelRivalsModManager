@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 
 using System;
+using System.IO;
 using System.Linq;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -24,6 +25,13 @@ namespace MarvelRivalManager.UI.Pages
         #region Dependencies
 
         private readonly IModManager m_manager = Services.Get<IModManager>();
+        private readonly IGameSettings m_game = Services.Get<IGameSettings>();
+
+        #endregion
+
+        #region Readonly props
+
+        private string ExtractionFolder => Mod is not null ? Path.Combine(Mod.File.Extraction, m_game.Get().GameContentFolder) : string.Empty;
 
         #endregion
 

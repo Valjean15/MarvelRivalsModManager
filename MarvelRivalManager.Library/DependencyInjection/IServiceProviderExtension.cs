@@ -9,6 +9,7 @@ namespace Microsoft.Extensions.Configuration
         public static IServiceCollection AddMavelRivalManagerServices(this IServiceCollection service)
         {
             service
+                .AddSingleton<IGameSettings, GameSettings>()
                 .AddSingleton<IModDataAccess, ModDataAccess>()
                 .AddSingleton<IResourcesClient, ResourcesClient>()
                 .AddSingleton<IModManager, ModManager>()

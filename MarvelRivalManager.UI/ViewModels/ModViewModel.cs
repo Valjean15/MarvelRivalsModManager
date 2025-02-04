@@ -35,21 +35,9 @@ namespace MarvelRivalManager.UI.ViewModels
         #endregion
     }
 
-    public class ModViewModel : Mod
+    public class ModViewModel(int index, string filepath) : Mod(filepath)
     {
-        public ModViewModel(Mod mod)
-        {
-            Index = 0;
-            File = mod.File;
-            Metadata = mod.Metadata;
-        }
-
-        public ModViewModel(int index, string filepath) : base(filepath)
-        {
-            Index = index;
-        }
-
-        public int Index { get; set; }
+        public int Index { get; set; } = index;
 
         #region View properties
         public string Name
@@ -94,15 +82,6 @@ namespace MarvelRivalManager.UI.ViewModels
         public bool NoHasLogo => string.IsNullOrEmpty(Metadata.Logo);
         public bool HasLogo => !string.IsNullOrEmpty(Metadata.Logo);
         #endregion
-
-        public ModViewModel Clone()
-        {
-            return new ModViewModel(new Mod
-            {
-                Metadata = Metadata,
-                File = File
-            });
-        }
     }
 
     public partial class ModCollection : ObservableCollection<ModViewModel>

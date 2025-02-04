@@ -6,17 +6,18 @@ using System.Diagnostics;
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IPatcher"/>
-    internal class Patcher(IEnvironment configuration, IRepack repack, IModDataAccess query) : IPatcher
+    internal class Patcher(IEnvironment configuration, IRepack repack, IModDataAccess query, IGameSettings game) : IPatcher
     {
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
         private readonly IRepack Repack = repack;
         private readonly IModDataAccess Query = query;
+        private readonly IGameSettings Game = game;
         #endregion
 
         #region Fields
 
-        private string PATCH_FOLDER => Path.Combine(Configuration?.Folders?.GameContent ?? string.Empty, "Paks");
+        private string PATCH_FOLDER => Path.Combine(Configuration.Folders.GameContent ?? string.Empty, Game.Get().PakFilesFolder);
         private const string PATCH_FILE_PREFIX = "pakchunkModManager";
         private const string PATCH_FILENAME_FORMAT = "pakchunkModManager_{0}_P.pak";
         #endregion

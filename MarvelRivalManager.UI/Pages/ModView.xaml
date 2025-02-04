@@ -123,7 +123,7 @@
 
                     <TextBlock Text="{x:Bind common:Localization.EXTRACTION_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
                     <component:ReadOnlyText Label="{x:Bind common:Localization.PATH}" Value="{x:Bind Mod.File.Extraction, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.CONTENT}" Value="{x:Bind Mod.File.ExtractionContent, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.CONTENT}" Value="{x:Bind ExtractionFolder, Mode=OneWay}" />
 
                     <StackPanel Padding="0,50,30,0">
                         <TextBlock Text="{x:Bind common:Localization.MOD_INFORMATION}" FontSize="14" Margin="0,0,0,10" Width="100"/>

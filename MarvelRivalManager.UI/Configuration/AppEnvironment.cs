@@ -1,20 +1,26 @@
 ﻿using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
+using MarvelRivalManager.UI.Helper;
 
-using System.IO;
 using System;
+using System.Collections.Concurrent;
+using System.IO;
 
 using BaseAppEnvironment = MarvelRivalManager.Library.Services.Implementation.Environment;
-using System.Collections.Concurrent;
 
 namespace MarvelRivalManager.UI.Configuration
 {
+    /// <summary>
+    ///     Reference interface to the assembly
+    /// </summary>
+    public struct MarvelRivalManagerAssembly;
+
     /// <summary>
     ///     Session values
     /// </summary>
     public static class SessionValues
     {
-        private static ConcurrentDictionary<string, string> _localization = new();
+        private static readonly ConcurrentDictionary<string, string> _localization = new();
 
         public static string Get(string key)
         {
@@ -41,14 +47,31 @@ namespace MarvelRivalManager.UI.Configuration
         #region Fields
 
         /// <summary>
+        ///     Get the environment folder
+        /// </summary>
+        private static string EnvironmentFolder
+        {
+            get
+            {
+                if (NativeHelper.IsAppPackaged)
+                    return Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+
+                return Path.GetDirectoryName(typeof(MarvelRivalManagerAssembly).Assembly.Location)
+
+                    // Default location
+                    ?? Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
+            }
+        }
+
+        /// <summary>
         ///     Folder were the user modified settings are saved
         /// </summary>
-        private readonly string UserSettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), UserSettingsFolderName);
+        private readonly string UserSettingsFolder = Path.Combine(EnvironmentFolder, UserSettingsFolderName);
 
         /// <summary>
         ///     File were the user modified settings are saved
         /// </summary>
-        private readonly string UserSettingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), UserSettingsFileName);
+        private readonly string UserSettingsFile = Path.Combine(EnvironmentFolder, UserSettingsFileName);
 
         #endregion
 

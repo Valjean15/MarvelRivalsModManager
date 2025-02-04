@@ -13,18 +13,18 @@ using System.Text;
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IRepack"/>
-    internal class Repack(IEnvironment configuration, IModDataAccess query) : IRepack
+    internal class Repack(IEnvironment configuration, IModDataAccess query, IGameSettings game) : IRepack
     {
-        private const string AES_KEY = "0C263D8C22DCB085894899C3A3796383E9BF9DE0CBFB08C9BF2DEF2E84F29D74";
-
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
         private readonly IModDataAccess Query = query;
+        private readonly IGameSettings Game = game;
         #endregion
 
         #region Properties
         private string Executable => $"{Configuration?.Folders?.RepackFolder}/repak.exe";
         private string ExtractionFolder => $"{Configuration?.Folders?.RepackFolder}/extraction";
+        private GameSetting GameSettings => Game.Get();
         #endregion
 
         /// <see cref="IRepack.IsAvailable"/>
@@ -108,9 +108,6 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
                 await informer(["UNPACKING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
                 mod.Metadata.Unpacked = true;
-
-                if (Configuration.Options.EvaluateOnUpdate)
-                    await mod.SetSystemInformation();
 
                 mod.Update();
 
@@ -304,7 +301,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (!Directory.Exists(file.Extraction))
                 return false;
 
-            if (Directory.Exists(file.ExtractionContent))
+            if (Directory.Exists(Path.Combine(file.Extraction, GameSettings.GameContentFolder)))
                 return true;
 
             var pakfiles = Directory.GetFiles(file.Extraction, "*.pak");
@@ -343,15 +340,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
         private async ValueTask<bool> ToolUnpack(FileInformation file)
         {
             var arguments = new StringBuilder();
-            if (!string.IsNullOrEmpty(AES_KEY))
-                arguments.Append($"--aes-key {AES_KEY} ");
+            if (!string.IsNullOrEmpty(GameSettings.AES_KEY))
+                arguments.Append($"--aes-key {GameSettings.AES_KEY} ");
 
             arguments.Append($"unpack \"{file.Filepath}\"");
 
             if (!await UseTool(arguments.ToString()))
                 return false;
 
-            return Directory.Exists(file.ExtractionContent);
+            return Directory.Exists(Path.Combine(file.Extraction, GameSettings.GameContentFolder));
         }
 
         /// <summary>
@@ -363,8 +360,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return string.Empty;
 
             var arguments = new StringBuilder();
-            if (!string.IsNullOrEmpty(AES_KEY))
-                arguments.Append($"--aes-key {AES_KEY} ");
+            if (!string.IsNullOrEmpty(GameSettings.AES_KEY))
+                arguments.Append($"--aes-key {GameSettings.AES_KEY} ");
 
             arguments.Append($"pack \"{folder}\"");
 

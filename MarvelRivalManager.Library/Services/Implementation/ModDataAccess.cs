@@ -6,10 +6,11 @@ using System.Collections.Concurrent;
 namespace MarvelRivalManager.Library.Services.Implementation
 {
     /// <see cref="IModDataAccess"/>
-    internal class ModDataAccess(IEnvironment configuration) : IModDataAccess
+    internal class ModDataAccess(IEnvironment configuration, IGameSettings game) : IModDataAccess
     {
         #region Dependencies
         private readonly IEnvironment Configuration = configuration;
+        private readonly IGameSettings Game = game;
         #endregion
 
         #region Fields
@@ -46,7 +47,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <see cref="IModDataAccess.SupportedExtentensions"/>
         public string[] SupportedExtentensions()
         {
-            return [".pak", ".zip", ".7z", ".rar"];
+            return Game.Get().SupportedExtentensions;
         }
 
         #region Private methods
