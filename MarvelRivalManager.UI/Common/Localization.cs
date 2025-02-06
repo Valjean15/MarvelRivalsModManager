@@ -65,6 +65,9 @@ namespace MarvelRivalManager.UI.Common
         public const string EVALUATE_ON_UPDATE = "Evaluate on update";
         public const string IGNORE_PACKER_TOOL = "Ignore packer tool";
         public const string USE_SINGLE_THREAD = "Use single thread for actions";
+        public const string ABOUT = "About the manager";
+        public const string ABOUT_VERSION = "Version";
+        public const string ABOUT_CONTACT = "Discord";
     }
 
     /// <summary>
@@ -104,6 +107,8 @@ namespace MarvelRivalManager.UI.Common
             ["CONTENT_FOLDER_DO_NOT_EXIST"] = "The unpacked content folder do not exist",
             ["CLEANING_DISABLED_MODS"] = "Cleaning disabled mods",
             ["CLEANING_SUCCESS_DISABLED_MODS"] = "Cleaning disabled mods successfully - {Time}",
+            ["PATCHING_GAME_PATCH_FILES"] = "Renaming game patch files",
+            ["PATCHING_GAME_PATCH_FILES_COMPLETE"] = "Renaming game patch files complete",
 
             // Packer
             ["CREATING_EXTRACTION_FOLDER"] = "Extraction folder do not exist, creating folder...",
@@ -149,9 +154,7 @@ namespace MarvelRivalManager.UI.Common
             if (keys is null || keys.Length == 0)
                 return string.Empty;
 
-            var builder = new StringBuilder();
-
-            return string.Join(". ", keys
+            var localization = string.Join(". ", keys
                 .Select(key =>
                 {
                     if (!_localization.TryGetValue(key, out var localization))
@@ -163,9 +166,11 @@ namespace MarvelRivalManager.UI.Common
                     if (!string.IsNullOrEmpty(@params.Time))
                         localization = localization.SetParam(@params.Time, "{Time}");
 
-                    return $"[{DateTime.Now:HH:mm:ss}] {string.Join("", @params.Action.Take(10)), -5} | {localization}";
+                    return localization;
                 })
                 .Where(value => !string.IsNullOrEmpty(value)));
+
+            return $"[{DateTime.Now:HH:mm:ss}] {string.Join("", @params.Action.Take(10)),-5} | {localization}";
         }
 
         private static string SetParam(this string localization, string value, string param)

@@ -17,9 +17,11 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
         #region Fields
 
-        private string PATCH_FOLDER => Path.Combine(Configuration.Folders.GameContent ?? string.Empty, Game.Get().PakFilesFolder);
+        private GameSetting GameSetting => Game.Get();
+        private string PATCH_FOLDER => Path.Combine(Configuration.Folders.GameContent ?? string.Empty, GameSetting.PakFilesFolder);
         private const string PATCH_FILE_PREFIX = "pakchunkModManager";
         private const string PATCH_FILENAME_FORMAT = "pakchunkModManager_{0}_P.pak";
+
         #endregion
 
         /// <see cref="IPatcher.Patch(Delegates.Log)"/>
@@ -32,6 +34,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
             }
 
             await informer(["STARTING_PATCH"], new PrintParams(LogConstants.PATCH));
+
+            // Toggle patch files
+            await TogglePatchFiles(informer, false);
 
             // Get mods to patch
             var all = await Query.All(true);
@@ -108,6 +113,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 await informer(["GAME_FOLDER_NOT_FOUND", "SKIPPING_PATCH"], new PrintParams(LogConstants.PATCH));
                 return false;
             }
+
+            // Toggle patch files
+            await TogglePatchFiles(informer, true);
 
             // Look for patch files
             var files = PATCH_FOLDER.GetAllFilesFromDirectory()
@@ -218,6 +226,49 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 // Set correct status
                 mod.Metadata.Active = false;
                 mod.Update();
+            }
+        }
+
+        /// <summary>
+        ///     Toggle patch files of the game
+        /// </summary>
+        /// <returns></returns>
+        private async ValueTask TogglePatchFiles(Delegates.Log informer, bool asPatch)
+        {
+            var files = PATCH_FOLDER.GetAllFilesFromDirectory()
+                .Where(file => Path.GetFileName(file).StartsWith(GameSetting.PatchPakFilesFormat))
+                .Where(file => Path.GetExtension(file).Equals(".pak"))
+                .Where(file =>
+                {
+                    var name = Path.GetFileNameWithoutExtension(file);
+                    return asPatch ? !name.EndsWith("_P") : name.EndsWith("_P");
+                })
+                .ToArray()
+                ;
+
+            if (files.Length == 0)
+                return;
+
+            await informer(["PATCHING_GAME_PATCH_FILES"], new PrintParams(LogConstants.PATCH));
+
+            if (Configuration.Options.UseSingleThread)
+            {
+                foreach (var file in files)
+                    await TogglePatchFile(file);
+            }
+            else
+            {
+                await Parallel.ForEachAsync(files, async (file, token) => await TogglePatchFile(file));
+            }
+
+            await informer(["PATCHING_GAME_PATCH_FILES_COMPLETE"], new PrintParams(LogConstants.PATCH));
+
+            async ValueTask TogglePatchFile(string filepath) 
+            {
+                var directory = Path.GetDirectoryName(filepath);
+                var name = Path.GetFileNameWithoutExtension(filepath);
+                var newName = asPatch ? string.Concat(name, "_P") : name.Replace("_P", string.Empty);
+                await Task.Run(() => filepath.MakeSafeMove(Path.Combine(directory!, $"{newName}.pak")));
             }
         }
 

@@ -37,5 +37,7 @@
         public string GameContentFolder => "Marvel/Content";
 
         public string PakFilesFolder => "Paks";
+
+        public string PatchPakFilesFormat => "Patch_-Windows_";
     }
 }

@@ -2,6 +2,7 @@ using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.UI.Helper;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Windows.ApplicationModel;
 
 namespace MarvelRivalManager.UI.Pages
 {
@@ -17,6 +18,17 @@ namespace MarvelRivalManager.UI.Pages
         #region Fields
         private string SelectedTheme => ThemeHelper.ActualTheme.ToString();
         private bool CanChangeTheme => NativeHelper.IsAppPackaged;
+        private string AppVersion
+        {
+            get
+            {
+                if (!NativeHelper.IsAppPackaged)
+                    return "Portable";
+
+                var version = Package.Current.Id.Version;
+                return $"{version.Major}.{version.Minor}.{version.Build}";
+            }
+        }
         #endregion
 
         public Settings()

@@ -11,7 +11,6 @@
 >
     <ScrollView>
         <StackPanel Spacing="20" Margin="10">
-            
             <StackPanel Spacing="15" Margin="5">
                 <TextBlock Text="{x:Bind common:Localization.GAME}" FontSize="18"/>
                 <component:FileInput
@@ -81,6 +80,12 @@
                     Click="ToggleButton_Click"
                     IsChecked="{x:Bind m_environment.Options.UseSingleThread, Mode=TwoWay}" />
 
+            </StackPanel>
+
+            <StackPanel Spacing="15" Margin="5">
+                <TextBlock Text="{x:Bind common:Localization.ABOUT}" FontSize="18"/>
+                <component:ReadOnlyText Label="{x:Bind common:Localization.ABOUT_VERSION}" Value="{x:Bind AppVersion, Mode=OneTime}" />
+                <component:ReadOnlyText Label="{x:Bind common:Localization.ABOUT_CONTACT}" Value="nordicboy3945" />
             </StackPanel>
         </StackPanel>
     </ScrollView>
