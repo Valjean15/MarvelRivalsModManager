@@ -39,11 +39,11 @@
                     Value="{x:Bind m_environment.Folders.RepackFolder, Mode=TwoWay}" />
             </StackPanel>
 
-            <StackPanel Spacing="15" Margin="5" Visibility="{x:Bind CanChangeTheme, Mode=OneWay}">
+            <StackPanel Spacing="15" Margin="5" Visibility="{x:Bind CanChangeTheme, Mode=OneTime}">
                 <TextBlock Text="{x:Bind common:Localization.THEME}" FontSize="18"/>
                 <Button x:Name="ToggleThemeButton"
                     MinWidth="300"
-                    Content="{x:Bind SelectedTheme, Mode=OneWay}"
+                    Content="{x:Bind SelectedTheme, Mode=OneTime}"
                     Click="ToggleThemeButton_Click"/>
             </StackPanel>
 

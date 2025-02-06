@@ -1,3 +1,4 @@
+using MarvelRivalManager.Library.Entities;
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.UI.Common;
 using Microsoft.UI.Xaml;
@@ -73,7 +74,7 @@ namespace MarvelRivalManager.UI.Pages
 
         private async void DownloadPakerToolIfNotExist()
         {
-            await m_resources.Download(async (keys, @params) => {  }, false);
+            await m_resources.Download(Delegates.EmptyLog, false);
         }
 
         #endregion

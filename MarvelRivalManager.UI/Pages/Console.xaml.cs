@@ -48,7 +48,7 @@ namespace MarvelRivalManager.UI.Pages
             {
                 Task.Run(async () =>
                 {
-                    if (await m_resources.NewVersionAvailable(async (keys, @params) => { }))
+                    if (await m_resources.NewVersionAvailable(EmptyLog))
                         await Print(["REPACK_TOOL_NEW_VERSION_AVAILABLE"], new PrintParams("PACK "));
 
                     SessionValues.Set("CHECK_TOOL_VERSION", "checked");

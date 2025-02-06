@@ -73,7 +73,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 Configuration.Folders.RepackFolder.CreateDirectoryIfNotExist();
             }
 
-            if (await Repack.IsAvailable() && (!update || !await NewVersionAvailable(async (keys, @params) => { }, cancellationToken)))
+            if (await Repack.IsAvailable() && (!update || !await NewVersionAvailable(Delegates.EmptyLog)))
             {
                 await informer(["REPACK_TOOL_ALREADY_DOWNLOADED"], new PrintParams(LogConstants.DOWNLOAD));
                 return true;
@@ -99,8 +99,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
             return await Download(informer, true, cancellationToken);
         }
 
-        /// <see cref="IResourcesClient.NewVersionAvailable(Delegates.Log, CancellationToken?)"/>
-        public async ValueTask<bool> NewVersionAvailable(Delegates.Log informer, CancellationToken? cancellationToken = null)
+        /// <see cref="IResourcesClient.NewVersionAvailable(Delegates.Log)"/>
+        public async ValueTask<bool> NewVersionAvailable(Delegates.Log informer)
         {
             if (Configuration.Options.IgnorePackerTool)
             {

@@ -51,7 +51,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Fill="{ThemeResource ControlStrongFillColorDefaultBrush}"
-                        Visibility="{x:Bind Mod.NoHasLogo, Mode=OneWay}"
+                        Visibility="{x:Bind Mod.NoHasLogo, Mode=OneTime}"
                     />
                     <Image x:Name="LogoPlaceholder"
                         Grid.Column="0" Grid.RowSpan="3"
@@ -61,8 +61,8 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Stretch="Uniform"
-                        Source="{x:Bind Mod.NonNullableLogo, Mode=OneWay}"
-                        Visibility="{x:Bind Mod.HasLogo, Mode=OneWay}"
+                        Source="{x:Bind Mod.NonNullableLogo, Mode=OneTime}"
+                        Visibility="{x:Bind Mod.HasLogo, Mode=OneTime}"
                     />
                     <Button Name="ChangeLogoButton" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ChangeLogoClick">
                         <FontIcon Glyph="&#xEE71;" FontSize="10"/>
@@ -75,8 +75,8 @@
                         FontSize="20"
                         Margin="0,0,0,10"
                     />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.STATUS}" Value="{x:Bind Mod.Status, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.Filename, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.STATUS}" Value="{x:Bind Mod.Status, Mode=OneTime}" />
                 </StackPanel>
             </Grid>
 
@@ -103,27 +103,27 @@
                             Width="300"
                         />
                     </StackPanel>
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.SYSTEM_TAGS}" Value="{x:Bind Mod.SystemTags, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.SYSTEM_TAGS}" Value="{x:Bind Mod.SystemTags, Mode=OneTime}" />
                 </StackPanel>
             </Grid>
 
             <Grid Grid.Row="3" Margin="0,30">
                 <StackPanel>
                     <TextBlock Text="{x:Bind common:Localization.FILE_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,0,0,20"/>
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILE_PATH}" Value="{x:Bind Mod.File.Filepath, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.Filename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.LOCATION}" Value="{x:Bind Mod.File.Location, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.EXTENSION}" Value="{x:Bind Mod.File.Extension, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILE_PATH}" Value="{x:Bind Mod.File.Filepath, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.Filename, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.LOCATION}" Value="{x:Bind Mod.File.Location, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.EXTENSION}" Value="{x:Bind Mod.File.Extension, Mode=OneTime}" />
 
                     <TextBlock Text="{x:Bind common:Localization.PROFILE_FILE_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILE_PATH}" Value="{x:Bind Mod.File.ProfileFilepath, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.ProfileFilename, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.LOCATION}" Value="{x:Bind Mod.File.ProfileLocation, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.EXTENSION}" Value="{x:Bind Mod.File.ProfileExtension, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILE_PATH}" Value="{x:Bind Mod.File.ProfileFilepath, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.FILENAME}" Value="{x:Bind Mod.File.ProfileFilename, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.LOCATION}" Value="{x:Bind Mod.File.ProfileLocation, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.EXTENSION}" Value="{x:Bind Mod.File.ProfileExtension, Mode=OneTime}" />
 
                     <TextBlock Text="{x:Bind common:Localization.EXTRACTION_INFORMATION}" Style="{ThemeResource SubtitleTextBlockStyle}" Padding="0,20,0,20"/>
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.PATH}" Value="{x:Bind Mod.File.Extraction, Mode=OneWay}" />
-                    <component:ReadOnlyText Label="{x:Bind common:Localization.CONTENT}" Value="{x:Bind ExtractionFolder, Mode=OneWay}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.PATH}" Value="{x:Bind Mod.File.Extraction, Mode=OneTime}" />
+                    <component:ReadOnlyText Label="{x:Bind common:Localization.CONTENT}" Value="{x:Bind ExtractionFolder, Mode=OneTime}" />
 
                     <StackPanel Padding="0,50,30,0">
                         <TextBlock Text="{x:Bind common:Localization.MOD_INFORMATION}" FontSize="14" Margin="0,0,0,10" Width="100"/>

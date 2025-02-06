@@ -15,7 +15,7 @@ namespace MarvelRivalManager.Library.Services.Interface
         /// <summary>
         ///     Verify if a new version is available
         /// </summary>
-        public ValueTask<bool> NewVersionAvailable(Log informer, CancellationToken? cancellationToken = null);
+        public ValueTask<bool> NewVersionAvailable(Log informer);
 
         /// <summary>
         ///     Download a resource for repacker

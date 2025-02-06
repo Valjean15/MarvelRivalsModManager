@@ -7,6 +7,9 @@ namespace MarvelRivalManager.Library.Entities
         public delegate ValueTask AsyncAction();
         public delegate ValueTask<T> AsyncActionWithTimer<T>(Stopwatch time);
         public delegate ValueTask Log(string[] codes, PrintParams @params);
+
+        public static AsyncAction EmptyAsyncAction => () => ValueTask.CompletedTask;
+        public static Log EmptyLog => (string[] codes, PrintParams @params) => ValueTask.CompletedTask;
     }
     
     public record struct PrintParams(
