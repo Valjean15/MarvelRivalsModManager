@@ -399,8 +399,11 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<string> ReadArguments(string command, string variable)
         {
-            if (string.IsNullOrEmpty(command) || !File.Exists(ArgumentsFile))
-                return string.Empty;
+            if (string.IsNullOrEmpty(command))
+                throw new ArgumentNullException(nameof(command));
+
+            if (!File.Exists(ArgumentsFile))
+                return $"{command} {variable}".Trim();
 
             // Load all the arguments
             await LoadArguments();
