@@ -87,9 +87,13 @@ namespace MarvelRivalManager.UI.Pages
             if (!string.IsNullOrEmpty(Mod.Metadata.Logo))
             {
                 Mod.File.ImagesLocation.CreateDirectoryIfNotExist();
-                Mod.Metadata.Logo = 
-                    Mod.Metadata.Logo.MakeSafeCopy(
-                        System.IO.Path.Combine(Mod.File.ImagesLocation, System.IO.Path.GetFileName(Mod.Metadata.Logo)));
+
+                var source = Mod.Metadata.Logo;
+                var destination = Path.Combine(Mod.File.ImagesLocation, Path.GetFileName(Mod.Metadata.Logo));
+
+                // Only move if the image are not on the same folder
+                if (!source.Equals(destination))
+                    Mod.Metadata.Logo = source.MakeSafeCopy(destination);
             }
 
             await m_manager.Update(Mod);
