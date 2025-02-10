@@ -32,8 +32,6 @@
 
         public string[] SupportedExtentensions => [".pak", ".zip", ".7z", ".rar"];
 
-        public string AES_KEY => "0C263D8C22DCB085894899C3A3796383E9BF9DE0CBFB08C9BF2DEF2E84F29D74";
-
         public string GameContentFolder => "Marvel/Content";
 
         public string PakFilesFolder => "Paks";

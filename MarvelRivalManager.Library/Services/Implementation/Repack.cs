@@ -22,9 +22,11 @@ namespace MarvelRivalManager.Library.Services.Implementation
         #endregion
 
         #region Properties
+        private string ArgumentsFile => $"{Configuration?.Folders?.RepackFolder}/arguments.txt";
         private string Executable => $"{Configuration?.Folders?.RepackFolder}/repak.exe";
         private string ExtractionFolder => $"{Configuration?.Folders?.RepackFolder}/extraction";
         private GameSetting GameSettings => Game.Get();
+        private readonly Dictionary<string, string> Arguments = [];
         #endregion
 
         /// <see cref="IRepack.IsAvailable"/>
@@ -339,13 +341,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// </summary>
         private async ValueTask<bool> ToolUnpack(FileInformation file)
         {
-            var arguments = new StringBuilder();
-            if (!string.IsNullOrEmpty(GameSettings.AES_KEY))
-                arguments.Append($"--aes-key {GameSettings.AES_KEY} ");
-
-            arguments.Append($"unpack \"{file.Filepath}\"");
-
-            if (!await UseTool(arguments.ToString()))
+            if (!await UseTool(await ReadArguments("unpack", $"\"{file.Filepath}\"")))
                 return false;
 
             return Directory.Exists(Path.Combine(file.Extraction, GameSettings.GameContentFolder));
@@ -359,17 +355,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
             if (string.IsNullOrEmpty(folder))
                 return string.Empty;
 
-            var arguments = new StringBuilder();
-            if (!string.IsNullOrEmpty(GameSettings.AES_KEY))
-                arguments.Append($"--aes-key {GameSettings.AES_KEY} ");
-
-            arguments.Append($"pack \"{folder}\"");
-            arguments.Append(" --version V11 --patch-uasset");
-
             var file = $"{folder}.pak";
             file.DeleteFileIfExist();
 
-            if (!await UseTool(arguments.ToString()))
+            if (!await UseTool(await ReadArguments("pack", $"\"{folder}\"")))
                 return string.Empty;
 
             return File.Exists(file) ? file : string.Empty;
@@ -403,6 +392,62 @@ namespace MarvelRivalManager.Library.Services.Implementation
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        ///     Read the arguments of a command
+        /// </summary>
+        private async ValueTask<string> ReadArguments(string command, string variable)
+        {
+            if (string.IsNullOrEmpty(command) || !File.Exists(ArgumentsFile))
+                return string.Empty;
+
+            // Load all the arguments
+            await LoadArguments();
+
+            // Build the argument
+            var arguments = Arguments[command];
+            return arguments.Replace("{{command}}", $"{command} {variable}".Trim());
+        }
+
+        /// <summary>
+        ///     Load the arguments from the file
+        /// </summary>
+        /// <returns></returns>
+        private async ValueTask LoadArguments()
+        {
+            if (Arguments.Count > 0)
+                return;
+
+            var arguments = new StringBuilder();
+            var lines = await File.ReadAllLinesAsync(ArgumentsFile);
+
+            var nonNullLines = (lines ?? []).Where(line => !string.IsNullOrEmpty(line)).Select(line => line.Trim()).ToList();
+            var lastIndex = nonNullLines.Count - 1;
+            var available = nonNullLines.Where(IsCommand)
+                .Select(raw =>
+                {
+                    var command = raw.TrimStart('[').TrimEnd(']');
+                    return (command, index: nonNullLines.IndexOf(raw));
+                });
+
+            foreach (var (command, index) in available)
+            {
+                var builder = new StringBuilder();
+                var i = index + 1;
+
+                while (i <= lastIndex && !IsCommand(nonNullLines[i]))
+                {
+                    var current = nonNullLines[i];
+                    builder.Append((IsVariable(current) ? current : $"--{current}") + " ");
+                    i++;
+                }
+                
+                Arguments[command] = builder.ToString().Trim();
+            }
+
+            static bool IsCommand(string line) => line.StartsWith('[') && line.EndsWith(']');
+            static bool IsVariable(string line) => line.StartsWith("{{") && line.EndsWith("}}");
         }
 
         #endregion
