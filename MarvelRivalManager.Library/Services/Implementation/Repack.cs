@@ -364,6 +364,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 arguments.Append($"--aes-key {GameSettings.AES_KEY} ");
 
             arguments.Append($"pack \"{folder}\"");
+            arguments.Append(" --version V11 --patch-uasset");
 
             var file = $"{folder}.pak";
             file.DeleteFileIfExist();
