@@ -2,6 +2,7 @@
 using MarvelRivalManager.Library.Services.Interface;
 using MarvelRivalManager.Library.Util;
 using System.Diagnostics;
+using System.Linq;
 
 namespace MarvelRivalManager.Library.Services.Implementation
 {
@@ -19,6 +20,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
         private GameSetting GameSetting => Game.Get();
         private string PATCH_FOLDER => Path.Combine(Configuration.Folders.GameContent ?? string.Empty, GameSetting.PakFilesFolder);
+        private string PATCH_MODS_FOLDER => Path.Combine(Configuration.Folders.GameContent ?? string.Empty, GameSetting.ModPakFilesFolder);
         private const string PATCH_FILE_PREFIX = "pakchunkModManager";
         private const string PATCH_FILENAME_FORMAT = "pakchunkModManager_{0}_P.pak";
 
@@ -51,6 +53,13 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 await informer(["PACKED_FILES_NOT_AVAILABLE", "SKIPPING_PATCH"], new PrintParams(LogConstants.PATCH));
                 return false;
             }
+
+            // Remove unsused content
+            await RemoveMods(informer);
+
+            // Create the patch folder
+            PATCH_FOLDER.CreateDirectoryIfNotExist();
+            PATCH_MODS_FOLDER.CreateDirectoryIfNotExist();
 
             // Patch the content
             var time = Stopwatch.StartNew();
@@ -99,7 +108,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 // Move the packed file to the game content folder
                 await Task.Run(() =>
                 {
-                    File.Move(file, Path.Combine(PATCH_FOLDER, string.Format(PATCH_FILENAME_FORMAT, name)), true);
+                    File.Move(file, Path.Combine(PATCH_MODS_FOLDER, string.Format(PATCH_FILENAME_FORMAT, name)), true);
                     file.DeleteFileIfExist();
                 });
             }
@@ -118,38 +127,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
             await TogglePatchFiles(informer, true);
 
             // Look for patch files
-            var files = PATCH_FOLDER.GetAllFilesFromDirectory()
-                .Where(file => Path.GetFileName(file).StartsWith(PATCH_FILE_PREFIX))
-                .ToArray()
-                ;
-
-            if (files.Length == 0)
-            {
-                await informer(["MOD_FILES_DO_NOT_EXIST", "SKIPPING_PATCH"], new PrintParams(LogConstants.PATCH));
-                return false;
-            }
-
-            // Delete the patch files
-            await informer(["DELETING_MOD_FILES"], new PrintParams(LogConstants.PATCH));
-            var time = Stopwatch.StartNew();
-
-            if (Configuration.Options.UseSingleThread)
-            {
-                foreach (var file in files)
-                    file.DeleteFileIfExist();
-            }
-            else
-            {
-                Parallel.ForEach(files, file => file.DeleteFileIfExist());
-            }
-
-            time.Stop();
-            await informer(["DELETING_SUCCESS_MOD_FILES"], new PrintParams(LogConstants.PATCH, time.GetHumaneElapsedTime()));
-            
-            time.Reset();
+            await RemoveMods(informer);
 
             await informer(["UPDATING_MOD_FILES"], new PrintParams(LogConstants.PATCH));
-            time.Start();
+            var time = Stopwatch.StartNew();
 
             // Update the active mods
             var active = (await Query.All(true)).Where(mod => mod.Metadata.Active);
@@ -270,6 +251,47 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 var newName = asPatch ? string.Concat(name, "_P") : name.Replace("_P", string.Empty);
                 await Task.Run(() => filepath.MakeSafeMove(Path.Combine(directory!, $"{newName}.pak")));
             }
+        }
+
+        /// <summary>
+        ///     Delete all mods files generated from the manager
+        /// </summary>
+        private async ValueTask<bool> RemoveMods(Delegates.Log informer)
+        {
+            // Look for mods files
+            var files = new string[] { PATCH_FOLDER, PATCH_MODS_FOLDER }
+                .SelectMany(directory =>
+                {
+                    return directory.GetAllFilesFromDirectory()
+                        .Where(file => Path.GetFileName(file).StartsWith(PATCH_FILE_PREFIX))
+                        .ToArray();
+                })
+                .ToArray();
+
+            if (files.Length == 0)
+            {
+                await informer(["MOD_FILES_DO_NOT_EXIST", "SKIPPING_PATCH"], new PrintParams(LogConstants.PATCH));
+                return false;
+            }
+
+            // Delete the patch files
+            await informer(["DELETING_MOD_FILES"], new PrintParams(LogConstants.PATCH));
+            var time = Stopwatch.StartNew();
+
+            if (Configuration.Options.UseSingleThread)
+            {
+                foreach (var file in files)
+                    file.DeleteFileIfExist();
+            }
+            else
+            {
+                Parallel.ForEach(files, file => file.DeleteFileIfExist());
+            }
+
+            time.Stop();
+            await informer(["DELETING_SUCCESS_MOD_FILES"], new PrintParams(LogConstants.PATCH, time.GetHumaneElapsedTime()));
+
+            return true;
         }
 
         #endregion

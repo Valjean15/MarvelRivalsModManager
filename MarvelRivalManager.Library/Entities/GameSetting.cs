@@ -35,7 +35,7 @@
         public string GameContentFolder => "Marvel/Content";
 
         public string PakFilesFolder => "Paks";
-
+        public string ModPakFilesFolder => "Paks/~mods";
         public string PatchPakFilesFormat => "Patch_-Windows_";
     }
 }

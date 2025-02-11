@@ -103,7 +103,14 @@
                             Width="300"
                         />
                     </StackPanel>
+
                     <component:ReadOnlyText Label="{x:Bind common:Localization.SYSTEM_TAGS}" Value="{x:Bind Mod.SystemTags, Mode=OneTime}" />
+                    
+                    <ToggleButton x:Name="ToggleIgnorePackage"
+                        MinWidth="300"
+                        Content="{x:Bind common:Localization.IGNORE_PACKAGE}" 
+                        IsChecked="{x:Bind Mod.Metadata.IgnoreUnpackage, Mode=TwoWay}" />
+
                 </StackPanel>
             </Grid>
 

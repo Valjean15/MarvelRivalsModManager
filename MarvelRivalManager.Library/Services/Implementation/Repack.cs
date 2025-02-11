@@ -7,6 +7,7 @@ using SharpCompress.Archives.SevenZip;
 using SharpCompress.Readers;
 
 using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
 using System.Text;
 
@@ -22,9 +23,10 @@ namespace MarvelRivalManager.Library.Services.Implementation
         #endregion
 
         #region Properties
-        private string ArgumentsFile => $"{Configuration?.Folders?.RepackFolder}/arguments.txt";
-        private string Executable => $"{Configuration?.Folders?.RepackFolder}/repak.exe";
-        private string ExtractionFolder => $"{Configuration?.Folders?.RepackFolder}/extraction";
+        private string RepackFolder => Configuration?.Folders?.RepackFolder ?? string.Empty;
+        private string ArgumentsFile => $"{RepackFolder}/arguments.txt";
+        private string Executable => $"{RepackFolder}/repak.exe";
+        private string ExtractionFolder => $"{RepackFolder}/extraction";
         private GameSetting GameSettings => Game.Get();
         private readonly Dictionary<string, string> Arguments = [];
         #endregion
@@ -102,6 +104,18 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             async ValueTask UnpackLocal(Delegates.Log informer, Mod mod)
             {
+                if (mod.Metadata.IgnoreUnpackage)
+                {
+                    // Just move to the extraction folder
+                    mod.File.Filepath.MakeSafeCopy(Path.Combine(RepackFolder, $"{mod.Metadata.Name}{mod.File.Extension}"));
+                    await informer(["MOVING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
+
+                    mod.Metadata.Unpacked = true;
+                    mod.Update();
+
+                    return;
+                }
+
                 if (!(await UnpackInternal(mod)))
                 {
                     await informer(["ERROR_UNPACKING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
@@ -109,8 +123,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 }
 
                 await informer(["UNPACKING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
-                mod.Metadata.Unpacked = true;
 
+                mod.Metadata.Unpacked = true;
                 mod.Update();
 
                 // To deploy on separate file, we need each mod on the corresponding folder
@@ -156,25 +170,32 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 if (Configuration.Options.UseSingleThread)
                 {
                     foreach (var directory in Directory.GetDirectories(ExtractionFolder))
-                        files.Add(await ToolPack(directory));
+                        await LocalToolPack(directory);
                 }
                 else
                 {
-                    await Parallel.ForEachAsync(Directory.GetDirectories(ExtractionFolder), async (directory, token) =>
-                    {
-                        files.Add(await ToolPack(directory));
-                    });
+                    await Parallel.ForEachAsync(
+                        Directory.GetDirectories(ExtractionFolder), 
+                        async (directory, token) => await LocalToolPack(directory));
                 }
             }
             else
             {
-                files.Add(await ToolPack(ExtractionFolder));
+                await ToolPack(ExtractionFolder);
             }
 
             time.Stop();
             await informer(["PACKING_SUCCESS_MODS"], new PrintParams(LogConstants.PACK, time.GetHumaneElapsedTime()));
 
-            return [.. files.Where(file => !string.IsNullOrEmpty(file))];
+            return Directory.GetFiles(RepackFolder, "*.pak")
+                .Concat(Directory.GetFiles(ExtractionFolder, "*.pak"))
+                .ToArray();
+
+            async ValueTask LocalToolPack(string directory)
+            {
+                await ToolPack(directory);
+                directory.DeleteDirectoryIfExists();
+            }
         }
 
         #region Private Methods
@@ -350,18 +371,18 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <summary>
         ///     Make a pak file
         /// </summary>
-        private async ValueTask<string> ToolPack(string folder)
+        private async ValueTask<bool> ToolPack(string folder)
         {
             if (string.IsNullOrEmpty(folder))
-                return string.Empty;
+                return false;
 
             var file = $"{folder}.pak";
             file.DeleteFileIfExist();
 
             if (!await UseTool(await ReadArguments("pack", $"\"{folder}\"")))
-                return string.Empty;
+                return false;
 
-            return File.Exists(file) ? file : string.Empty;
+            return File.Exists(file);
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Text;
 
 namespace MarvelRivalManager.UI.Common
 {
@@ -68,6 +67,7 @@ namespace MarvelRivalManager.UI.Common
         public const string ABOUT = "About the manager";
         public const string ABOUT_VERSION = "Version";
         public const string ABOUT_CONTACT = "Discord";
+        public const string IGNORE_PACKAGE = "Ignore package";
     }
 
     /// <summary>
@@ -117,6 +117,7 @@ namespace MarvelRivalManager.UI.Common
             ["UNPACKING_MODS"] = "Unpacking mods...",
             ["UNPACKING_SUCCESS_MODS"] = "Unpacking mods complete - {Time}",
             ["UNPACKING_MOD_SINGLE"] = "- Unpacking mod {Name}",
+            ["MOVING_MOD_SINGLE"] = "- Moving mod {Name}",
             ["ERROR_UNPACKING_MOD_SINGLE"] = "- Failed to unpack mod {Name}",
             ["PACKING_MODS"] = "Packing mods..",
             ["PACKING_SUCCESS_MODS"] = "Packing mods complete - {Time}",

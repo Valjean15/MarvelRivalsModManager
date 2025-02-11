@@ -53,6 +53,9 @@ namespace MarvelRivalManager.UI.Pages
 
             Mod = new ModInputViewModel(input.Index, input.File.Filepath);
 
+            // Visibility for specific elements
+            ToggleIgnorePackage.Visibility = Mod.File.Extension.Equals(".pak") ? Visibility.Visible : Visibility.Collapsed;
+
             FilePaths.IsReadOnly = false;
             FilePaths.Document.SetText(new Microsoft.UI.Text.TextSetOptions(), Mod.Files);
             FilePaths.IsReadOnly = true;

@@ -86,6 +86,7 @@ namespace MarvelRivalManager.Library.Entities
                 Unpacked = stored.Unpacked;
                 Active = stored.Active;
                 Valid = stored.Valid;
+                IgnoreUnpackage = stored.IgnoreUnpackage;
             }
             else
             {
@@ -104,6 +105,7 @@ namespace MarvelRivalManager.Library.Entities
         public bool Unpacked { get; set; } = false;
         public bool Active { get; set; } = false;
         public bool Valid { get; set; } = false;
+        public bool IgnoreUnpackage { get; set; }
 
         /// <summary>
         ///     Update the metadata of the mod
