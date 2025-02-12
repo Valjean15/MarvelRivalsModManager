@@ -107,7 +107,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 if (mod.Metadata.IgnoreUnpackage)
                 {
                     // Just move to the extraction folder
-                    mod.File.Filepath.MakeSafeCopy(Path.Combine(RepackFolder, $"{mod.Metadata.Name}{mod.File.Extension}"));
+                    var order = mod.Metadata.Order > 0 ? $"_{mod.Metadata.Order}" : string.Empty;
+                    mod.File.Filepath.MakeSafeCopy(Path.Combine(RepackFolder, $"{mod.Metadata.Name}{order}{mod.File.Extension}"));
                     await informer(["MOVING_MOD_SINGLE"], new PrintParams(LogConstants.UNPACK, Name: mod.ToString()));
 
                     mod.Metadata.Unpacked = true;
@@ -128,15 +129,16 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 mod.Update();
 
                 // To deploy on separate file, we need each mod on the corresponding folder
-                if (Configuration.Options.DeployOnSeparateFile)
+                if (Configuration.Options.DeployOnSingleFile)
                 {
-                    var newFolder = Path.Combine(ExtractionFolder, mod.Metadata.Name);
-                    newFolder.CreateDirectoryIfNotExist();
-                    await mod.File.Extraction.MergeDirectoryAsync(newFolder);
+                    await mod.File.Extraction.MergeDirectoryAsync(ExtractionFolder);
                 }
                 else
                 {
-                    await mod.File.Extraction.MergeDirectoryAsync(ExtractionFolder);
+                    var order = mod.Metadata.Order > 0 ? $"_{mod.Metadata.Order}" : string.Empty;
+                    var newFolder = Path.Combine(ExtractionFolder, $"{mod.Metadata.Name}{order}");
+                    newFolder.CreateDirectoryIfNotExist();
+                    await mod.File.Extraction.MergeDirectoryAsync(newFolder);
                 }
 
                 mod.File.Extraction.DeleteDirectoryIfExists();
@@ -164,8 +166,12 @@ namespace MarvelRivalManager.Library.Services.Implementation
             await informer(["PACKING_MODS"], new PrintParams(LogConstants.PACK));
             var time = Stopwatch.StartNew();
 
-            var files = new List<string>();
-            if (Configuration.Options.DeployOnSeparateFile)
+            if (Configuration.Options.DeployOnSingleFile)
+            {
+                if (Directory.EnumerateDirectories(ExtractionFolder).Any())
+                    await ToolPack(ExtractionFolder);
+            }
+            else
             {
                 if (Configuration.Options.UseSingleThread)
                 {
@@ -175,21 +181,15 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 else
                 {
                     await Parallel.ForEachAsync(
-                        Directory.GetDirectories(ExtractionFolder), 
+                        Directory.GetDirectories(ExtractionFolder),
                         async (directory, token) => await LocalToolPack(directory));
                 }
-            }
-            else
-            {
-                await ToolPack(ExtractionFolder);
             }
 
             time.Stop();
             await informer(["PACKING_SUCCESS_MODS"], new PrintParams(LogConstants.PACK, time.GetHumaneElapsedTime()));
 
-            return Directory.GetFiles(RepackFolder, "*.pak")
-                .Concat(Directory.GetFiles(ExtractionFolder, "*.pak"))
-                .ToArray();
+            return [.. Directory.GetFiles(RepackFolder, "*.pak") , .. Directory.GetFiles(ExtractionFolder, "*.pak")];
 
             async ValueTask LocalToolPack(string directory)
             {

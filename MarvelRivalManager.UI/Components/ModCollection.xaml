@@ -62,7 +62,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Fill="{ThemeResource ControlStrongFillColorDefaultBrush}"
-                        Visibility="{x:Bind NoHasLogo, Mode=OneWay}"
+                        Visibility="{x:Bind NoHasLogo, Mode=OneTime}"
                     />
                     <Image x:Name="LogoPlaceholder"
                         Grid.Column="0" Grid.RowSpan="3"
@@ -72,8 +72,8 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Stretch="Uniform"
-                        Source="{x:Bind NonNullableLogo, Mode=OneWay}"
-                        Visibility="{x:Bind HasLogo, Mode=OneWay}"
+                        Source="{x:Bind NonNullableLogo, Mode=OneTime}"
+                        Visibility="{x:Bind HasLogo, Mode=OneTime}"
                     />
                 </StackPanel>
 

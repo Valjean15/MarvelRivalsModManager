@@ -61,6 +61,7 @@ namespace MarvelRivalManager.UI.Common
         public const string OPTIONS = "Options";
         public const string MULTIPLE_MODS_PROFILE = "Multiple mods profile";
         public const string DEPLOY_ON_SEPARATE_FILES = "Deploy on separate files";
+        public const string DEPLOY_ON_SINGLE_FILE = "Deploy on single file";
         public const string EVALUATE_ON_UPDATE = "Evaluate on update";
         public const string IGNORE_PACKER_TOOL = "Ignore packer tool";
         public const string USE_SINGLE_THREAD = "Use single thread for actions";

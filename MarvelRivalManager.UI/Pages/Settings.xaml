@@ -58,9 +58,9 @@
                 
                 <ToggleButton 
                     MinWidth="300"
-                    Content="{x:Bind common:Localization.DEPLOY_ON_SEPARATE_FILES}"
+                    Content="{x:Bind common:Localization.DEPLOY_ON_SINGLE_FILE}"
                     Click="ToggleButton_Click"
-                    IsChecked="{x:Bind m_environment.Options.DeployOnSeparateFile, Mode=TwoWay}" />
+                    IsChecked="{x:Bind m_environment.Options.DeployOnSingleFile, Mode=TwoWay}" />
 
                 <ToggleButton 
                     MinWidth="300"

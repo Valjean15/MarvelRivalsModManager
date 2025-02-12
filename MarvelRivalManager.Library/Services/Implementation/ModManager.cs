@@ -19,6 +19,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
             var mod = await Evaluate(new Mod(filepath));
             mod.Metadata.Enabled = mod.Metadata.Valid;
 
+            // Default value
+            mod.Metadata.IgnoreUnpackage = mod.File.Extension.Equals(".pak");
+
             Move(mod, mod.Metadata.Enabled
                 ? Configuration.Folders.ModsEnabled
                 : Configuration.Folders.ModsDisabled);

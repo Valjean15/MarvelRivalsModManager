@@ -88,9 +88,9 @@
         public bool UseSingleThread { get; set; }
 
         /// <summary>
-        ///    Refers to deploy all the mods on separate files when patching the game
+        ///    Refers to deploy all the mods on a single file when patching the game
         /// </summary>
-        public bool DeployOnSeparateFile { get; set; }
+        public bool DeployOnSingleFile { get; set; }
 
         /// <summary>
         ///    Refer to skip all actions related to unpacking the mods
