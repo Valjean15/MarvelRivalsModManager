@@ -5,9 +5,8 @@ using MarvelRivalManager.Library.Util;
 using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Readers;
-
+using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 using System.Text;
 
@@ -28,7 +27,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         private string Executable => $"{RepackFolder}/repak.exe";
         private string ExtractionFolder => $"{RepackFolder}/extraction";
         private GameSetting GameSettings => Game.Get();
-        private readonly Dictionary<string, string> Arguments = [];
+        private readonly ConcurrentDictionary<string, string> Arguments = [];
         #endregion
 
         /// <see cref="IRepack.IsAvailable"/>
@@ -261,6 +260,9 @@ namespace MarvelRivalManager.Library.Services.Implementation
                 return false;
             }
 
+            // pre-load all the arguments for the tool
+            await LoadArguments();
+
             return true;
         }
 
@@ -430,8 +432,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
             await LoadArguments();
 
             // Build the argument
-            var arguments = Arguments[command];
-            return arguments.Replace("{{command}}", $"{command} {variable}".Trim());
+            Arguments.TryGetValue(command, out var arguments);
+            return string.IsNullOrEmpty(arguments) ? string.Empty : arguments.Replace("{{command}}", $"{command} {variable}".Trim());
         }
 
         /// <summary>
@@ -440,7 +442,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
         /// <returns></returns>
         private async ValueTask LoadArguments()
         {
-            if (Arguments.Count > 0)
+            if (!Arguments.IsEmpty)
                 return;
 
             var arguments = new StringBuilder();
@@ -466,8 +468,8 @@ namespace MarvelRivalManager.Library.Services.Implementation
                     builder.Append((IsVariable(current) ? current : $"--{current}") + " ");
                     i++;
                 }
-                
-                Arguments[command] = builder.ToString().Trim();
+
+                Arguments.TryAdd(command, builder.ToString().Trim());
             }
 
             static bool IsCommand(string line) => line.StartsWith('[') && line.EndsWith(']');

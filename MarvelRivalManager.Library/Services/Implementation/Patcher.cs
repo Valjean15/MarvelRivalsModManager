@@ -270,7 +270,7 @@ namespace MarvelRivalManager.Library.Services.Implementation
 
             if (files.Length == 0)
             {
-                await informer(["MOD_FILES_DO_NOT_EXIST", "SKIPPING_PATCH"], new PrintParams(LogConstants.PATCH));
+                await informer(["MOD_FILES_DO_NOT_EXIST", "SKIPPING_CLEAN"], new PrintParams(LogConstants.PATCH));
                 return false;
             }
 

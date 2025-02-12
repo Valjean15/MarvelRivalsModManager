@@ -100,7 +100,7 @@ namespace MarvelRivalManager.UI.Common
             ["SUCCESS_PATCH"] = "Content folder patched successfully - {Time}",
             ["PACKED_FILES_NOT_AVAILABLE"] = "The packed content file do not exist",
             ["CONTENT_DO_NOT_EXIST"] = "The file ({Name}) do not exist",
-            ["MOD_FILES_DO_NOT_EXIST"] = "The mods patch files do no exist",
+            ["MOD_FILES_DO_NOT_EXIST"] = "No deployed mod were found",
             ["DELETING_MOD_FILES"] = "Deleting mods patch files...",
             ["DELETING_SUCCESS_MOD_FILES"] = "Deleting mods patch files complete - {Time}",
             ["UPDATING_MOD_FILES"] = "Updating mod status...",
